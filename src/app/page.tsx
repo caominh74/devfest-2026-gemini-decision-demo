@@ -15,7 +15,6 @@ import {
 import type {
   DecisionApiResponse,
   DecisionQuestionType,
-  EvaluationMode,
   QuestionBlock,
   StateBlock,
 } from "@/lib/types";
@@ -88,7 +87,6 @@ function createInitialQuestions(): QuestionBlock[] {
 }
 
 export default function PlaygroundPage() {
-  const [mode, setMode] = useState<EvaluationMode>("live");
   const [stateBlocks, setStateBlocks] = useState<StateBlock[]>(
     createInitialStateBlocks
   );
@@ -289,7 +287,7 @@ export default function PlaygroundPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          mode,
+          mode: "live",
           input: serializedInput,
           questions: serializedQuestions,
         }),
@@ -311,7 +309,7 @@ export default function PlaygroundPage() {
     } finally {
       setIsRunning(false);
     }
-  }, [isRunning, mode, questions.length, serializedInput, serializedQuestions]);
+  }, [isRunning, questions.length, serializedInput, serializedQuestions]);
 
   // Global Ctrl+Enter / Cmd+Enter shortcut
   useEffect(() => {
@@ -330,8 +328,6 @@ export default function PlaygroundPage() {
   return (
     <div className="h-dvh flex flex-col overflow-hidden bg-[#fbfbfc] text-[#1e1e1e]">
       <TopBar
-        mode={mode}
-        onModeChange={setMode}
         onClear={handleClear}
         onCopySdk={handleCopySdk}
         copiedSdk={copiedSdk}

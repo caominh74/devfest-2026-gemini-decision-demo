@@ -1,19 +1,14 @@
 "use client";
 
 import { Check, Copy, RotateCcw } from "lucide-react";
-import type { EvaluationMode } from "@/lib/types";
 
 interface TopBarProps {
-  mode: EvaluationMode;
-  onModeChange: (mode: EvaluationMode) => void;
   onClear: () => void;
   onCopySdk: () => void;
   copiedSdk: boolean;
 }
 
 export function TopBar({
-  mode,
-  onModeChange,
   onClear,
   onCopySdk,
   copiedSdk,
@@ -49,7 +44,7 @@ export function TopBar({
         </span>
       </div>
 
-      {/* Right: Clear, Live / Mock toggle, Copy SDK */}
+      {/* Right: Clear, Copy SDK */}
       <div className="flex items-center space-x-1.5 sm:space-x-2.5 shrink-0">
         <button
           type="button"
@@ -61,50 +56,6 @@ export function TopBar({
           <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
           <span className="hidden sm:inline">Clear</span>
         </button>
-
-        {/* Live / Mock Segmented Toggle */}
-        <div
-          className="inline-flex items-center border border-slate-300 bg-slate-50 text-xs font-mono"
-          role="group"
-          aria-label="Evaluation mode"
-        >
-          <button
-            type="button"
-            onClick={() => onModeChange("live")}
-            className={`touch-target inline-flex items-center justify-center space-x-1 sm:space-x-1.5 px-2 sm:px-2.5 py-1 transition-colors cursor-pointer ${
-              mode === "live"
-                ? "bg-[#e6f4ea] text-[#137333] font-semibold border-r border-slate-300"
-                : "text-slate-500 hover:text-slate-800 border-r border-slate-200"
-            }`}
-            title="Call live gemini-decision-1 API (auto-falls back to Mock if GEMINI_API_KEY is unset)"
-          >
-            <span
-              className={`w-2 h-2 inline-block shrink-0 ${
-                mode === "live" ? "bg-[#34a853]" : "bg-slate-300"
-              }`}
-              aria-hidden="true"
-            />
-            <span>Live</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => onModeChange("mock")}
-            className={`touch-target inline-flex items-center justify-center space-x-1 sm:space-x-1.5 px-2 sm:px-2.5 py-1 transition-colors cursor-pointer ${
-              mode === "mock"
-                ? "bg-[#fef7e0] text-[#b06000] font-semibold"
-                : "text-slate-500 hover:text-slate-800"
-            }`}
-            title="Deterministic offline Mock Mode for stage resilience"
-          >
-            <span
-              className={`w-2 h-2 inline-block shrink-0 ${
-                mode === "mock" ? "bg-[#fbbc04]" : "bg-slate-300"
-              }`}
-              aria-hidden="true"
-            />
-            <span>Mock</span>
-          </button>
-        </div>
 
         {/* Copy SDK */}
         <button
