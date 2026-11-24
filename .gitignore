@@ -1,6 +1,4 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
+# Dependencies
 /node_modules
 /.pnp
 .pnp.*
@@ -10,33 +8,43 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
-/coverage
+# Non-Bun lockfiles (strictly use bun.lock)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
-# next.js
+# Next.js build output
 /.next/
 /out/
-
-# production
 /build
 
-# misc
-.DS_Store
+# Testing & coverage
+/coverage
+
+# Environment & secrets (keep .env.example tracked)
+.env*
+!.env.example
 *.pem
 
-# debug
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Logs & debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
-!.env.example
-
-# vercel
+# Deployment & tooling
 .vercel
+.turbo
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# OS & editor artifacts
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo

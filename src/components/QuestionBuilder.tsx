@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   AlertTriangle,
   ArrowDown,
@@ -32,6 +33,10 @@ export function QuestionBuilder({
   onChange,
   onAddQuestion,
 }: QuestionBuilderProps) {
+  const [armedDragId, setArmedDragId] = useState<string | null>(null);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
+
   const removeQuestion = (id: string) => {
     onChange(questions.filter((q) => q.id !== id));
   };
@@ -42,6 +47,17 @@ export function QuestionBuilder({
     const next = [...questions];
     const [moved] = next.splice(index, 1);
     next.splice(target, 0, moved);
+    onChange(next);
+  };
+
+  const reorderQuestions = (sourceId: string, targetId: string) => {
+    if (sourceId === targetId) return;
+    const fromIdx = questions.findIndex((q) => q.id === sourceId);
+    const toIdx = questions.findIndex((q) => q.id === targetId);
+    if (fromIdx === -1 || toIdx === -1) return;
+    const next = [...questions];
+    const [moved] = next.splice(fromIdx, 1);
+    next.splice(toIdx, 0, moved);
     onChange(next);
   };
 
@@ -84,18 +100,18 @@ export function QuestionBuilder({
   return (
     <section aria-label="Questions builder">
       {/* Sticky Questions Header */}
-      <div className="px-4 py-2 border-b border-slate-200 flex items-center justify-between bg-white sticky top-0 z-10">
+      <div className="px-4 py-2.5 border-b border-slate-200 flex items-center justify-between bg-white sticky top-0 z-10">
         <div className="flex items-center space-x-2">
-          <span className="text-xs font-semibold text-slate-700 font-sans tracking-wide">
+          <span className="text-sm font-semibold text-slate-800 font-sans tracking-wide">
             Questions
           </span>
-          <span className="text-[10px] font-mono px-1.5 py-0.5 bg-slate-100 text-slate-500 border border-slate-200">
+          <span className="text-xs font-mono px-2 py-0.5 bg-slate-100 text-slate-500 border border-slate-200">
             {blockCountLabel}
           </span>
         </div>
-        <div className="flex items-center space-x-2 text-[11px] text-slate-400">
+        <div className="flex items-center space-x-2 text-xs text-slate-400">
           <span className="flex items-center space-x-1">
-            <Info className="w-3 h-3" />
+            <Info className="w-3.5 h-3.5" />
             <span>
               {questions.length} {questions.length === 1 ? "rule" : "rules"} ·
               parallel
@@ -105,9 +121,9 @@ export function QuestionBuilder({
       </div>
 
       {/* Modular Scratch-style Question Blocks */}
-      <div className="p-3 bg-white space-y-3">
+      <div className="p-3.5 bg-white space-y-3.5">
         {questions.length === 0 && (
-          <div className="border border-dashed border-slate-300 bg-[#fafbfc] px-3 py-5 text-center text-xs text-slate-500">
+          <div className="border border-dashed border-slate-300 bg-[#fafbfc] px-4 py-6 text-center text-sm text-slate-500">
             No output questions yet. Pick{" "}
             <span className="font-mono text-[#1967d2]">+ noul</span>,{" "}
             <span className="font-mono text-[#b06000]">+ choice</span>, or{" "}
@@ -117,6 +133,60 @@ export function QuestionBuilder({
         )}
 
         {questions.map((q, index) => {
+          const isDragging = draggingId === q.id;
+          const isDragOver = dragOverId === q.id && draggingId !== q.id;
+
+          const dragProps = {
+            draggable: armedDragId === q.id,
+            onDragStart: (e: React.DragEvent<HTMLDivElement>) => {
+              setDraggingId(q.id);
+              e.dataTransfer.effectAllowed = "move";
+              e.dataTransfer.setData("text/plain", q.id);
+            },
+            onDragOver: (e: React.DragEvent<HTMLDivElement>) => {
+              if (!draggingId) return;
+              e.preventDefault();
+              e.dataTransfer.dropEffect = "move";
+              if (dragOverId !== q.id) {
+                setDragOverId(q.id);
+              }
+            },
+            onDrop: (e: React.DragEvent<HTMLDivElement>) => {
+              e.preventDefault();
+              const sourceId =
+                draggingId || e.dataTransfer.getData("text/plain");
+              if (sourceId) {
+                reorderQuestions(sourceId, q.id);
+              }
+              setDraggingId(null);
+              setDragOverId(null);
+              setArmedDragId(null);
+            },
+            onDragEnd: () => {
+              setDraggingId(null);
+              setDragOverId(null);
+              setArmedDragId(null);
+            },
+          };
+
+          const gripHandle = (
+            <button
+              type="button"
+              onPointerDown={() => setArmedDragId(q.id)}
+              onPointerUp={() => setArmedDragId(null)}
+              className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-700 p-0.5 -ml-0.5 transition-colors shrink-0"
+              title="Drag to reorder"
+              aria-label="Drag question block to reorder"
+            >
+              <GripVertical className="w-4 h-4" />
+            </button>
+          );
+
+          const dragRingClass = isDragOver
+            ? "ring-2 ring-[#4285f4] ring-offset-1"
+            : "";
+          const dragOpacityClass = isDragging ? "opacity-40" : "";
+
           const reorderControls = (
             <div className="inline-flex items-center space-x-0.5 mr-1">
               <button
@@ -127,7 +197,7 @@ export function QuestionBuilder({
                 title="Move up"
                 aria-label="Move question up"
               >
-                <ArrowUp className="w-3 h-3" />
+                <ArrowUp className="w-3.5 h-3.5" />
               </button>
               <button
                 type="button"
@@ -137,7 +207,7 @@ export function QuestionBuilder({
                 title="Move down"
                 aria-label="Move question down"
               >
-                <ArrowDown className="w-3 h-3" />
+                <ArrowDown className="w-3.5 h-3.5" />
               </button>
             </div>
           );
@@ -147,14 +217,13 @@ export function QuestionBuilder({
             return (
               <div
                 key={q.id}
-                className="scratch-block border-l-4 border-l-[#4285f4] border-t border-r border-b border-slate-300 bg-white p-3 shadow-sm hover:border-slate-400 transition-colors"
+                {...dragProps}
+                className={`scratch-block border-l-4 border-l-[#4285f4] border-t border-r border-b border-slate-300 bg-white p-3.5 shadow-sm hover:border-slate-400 transition-all ${dragRingClass} ${dragOpacityClass}`}
               >
-                <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-2.5 gap-2">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-3 gap-2">
                   <div className="flex items-center space-x-2 min-w-0 flex-1">
-                    <span className="text-slate-300 shrink-0" aria-hidden="true">
-                      <GripVertical className="w-3.5 h-3.5" />
-                    </span>
-                    <div className="inline-block px-2 py-0.5 text-[10px] font-mono bg-[#e8f0fe] text-[#1967d2] border border-[#c3ecf6] font-bold shrink-0">
+                    {gripHandle}
+                    <div className="inline-block px-2 py-0.5 text-xs font-mono bg-[#e8f0fe] text-[#1967d2] border border-[#c3ecf6] font-bold shrink-0">
                       noul
                     </div>
                     <input
@@ -163,32 +232,32 @@ export function QuestionBuilder({
                       onChange={(e) => updateNoul(q.id, { key: e.target.value })}
                       placeholder="question_key"
                       aria-label="Noul question key"
-                      className="text-xs font-mono font-semibold text-[#1e1e1e] bg-transparent border border-transparent hover:border-slate-200 focus:border-[#4285f4] focus:bg-[#f8f9fa] px-1.5 py-0.5 focus:outline-none min-w-0 flex-1"
+                      className="text-sm font-mono font-semibold text-[#1e1e1e] bg-transparent border border-transparent hover:border-slate-200 focus:border-[#4285f4] focus:bg-[#f8f9fa] px-1.5 py-0.5 focus:outline-none min-w-0 flex-1"
                     />
                   </div>
                   <div className="flex items-center space-x-1 shrink-0">
                     {reorderControls}
-                    <span className="text-[10px] font-mono text-slate-400 hidden sm:inline">
+                    <span className="text-xs font-mono text-slate-400 hidden sm:inline">
                       bool [0.01..0.99]
                     </span>
                     <button
                       type="button"
                       onClick={() => removeQuestion(q.id)}
-                      className="text-slate-300 hover:text-[#ea4335] p-0.5 ml-1 transition-colors cursor-pointer"
+                      className="text-slate-400 hover:text-[#ea4335] p-0.5 ml-1 transition-colors cursor-pointer"
                       title="Delete block"
                       aria-label="Delete noul question"
                     >
-                      <X className="w-3.5 h-3.5" />
+                      <X className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <div className="flex items-center text-xs font-sans">
-                    <span className="w-16 text-slate-400 text-[11px] font-mono shrink-0">
+                <div className="space-y-2.5">
+                  <div className="flex items-center text-sm font-sans">
+                    <span className="w-20 text-slate-400 text-xs font-mono shrink-0">
                       question
                     </span>
-                    <div className="flex-1 flex items-center border border-slate-200 bg-[#f8f9fa] px-2 py-1 focus-within:border-[#4285f4] focus-within:bg-white">
+                    <div className="flex-1 flex items-center border border-slate-200 bg-[#f8f9fa] px-2.5 py-1.5 focus-within:border-[#4285f4] focus-within:bg-white">
                       <input
                         type="text"
                         value={q.instructions}
@@ -196,19 +265,19 @@ export function QuestionBuilder({
                           updateNoul(q.id, { instructions: e.target.value })
                         }
                         placeholder="Ask a yes/no decision question..."
-                        className="bg-transparent border-0 p-0 text-xs font-sans text-[#1e1e1e] w-full focus:ring-0 focus:outline-none"
+                        className="bg-transparent border-0 p-0 text-sm font-sans text-[#1e1e1e] w-full focus:ring-0 focus:outline-none"
                       />
                     </div>
                   </div>
 
                   {/* Optional criteria: true_description / false_description */}
-                  <div className="flex items-start text-xs font-sans">
-                    <span className="w-16 text-slate-400 text-[11px] font-mono shrink-0 pt-1">
+                  <div className="flex items-start text-sm font-sans">
+                    <span className="w-20 text-slate-400 text-xs font-mono shrink-0 pt-1.5">
                       criteria
                     </span>
-                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                      <div className="flex items-center border border-slate-200 bg-white px-2 py-0.5 focus-within:border-[#4285f4]">
-                        <span className="text-[10px] font-mono text-[#137333] mr-1.5 shrink-0">
+                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div className="flex items-center border border-slate-200 bg-white px-2.5 py-1 focus-within:border-[#4285f4]">
+                        <span className="text-xs font-mono text-[#137333] mr-1.5 shrink-0">
                           true:
                         </span>
                         <input
@@ -223,11 +292,11 @@ export function QuestionBuilder({
                             })
                           }
                           placeholder="Optional true criteria"
-                          className="bg-transparent border-0 p-0 text-[11px] font-sans text-[#1e1e1e] w-full focus:ring-0 focus:outline-none"
+                          className="bg-transparent border-0 p-0 text-xs font-sans text-[#1e1e1e] w-full focus:ring-0 focus:outline-none"
                         />
                       </div>
-                      <div className="flex items-center border border-slate-200 bg-white px-2 py-0.5 focus-within:border-[#4285f4]">
-                        <span className="text-[10px] font-mono text-[#c5221f] mr-1.5 shrink-0">
+                      <div className="flex items-center border border-slate-200 bg-white px-2.5 py-1 focus-within:border-[#4285f4]">
+                        <span className="text-xs font-mono text-[#c5221f] mr-1.5 shrink-0">
                           false:
                         </span>
                         <input
@@ -242,7 +311,7 @@ export function QuestionBuilder({
                             })
                           }
                           placeholder="Optional false criteria"
-                          className="bg-transparent border-0 p-0 text-[11px] font-sans text-[#1e1e1e] w-full focus:ring-0 focus:outline-none"
+                          className="bg-transparent border-0 p-0 text-xs font-sans text-[#1e1e1e] w-full focus:ring-0 focus:outline-none"
                         />
                       </div>
                     </div>
@@ -293,14 +362,13 @@ export function QuestionBuilder({
             return (
               <div
                 key={q.id}
-                className="scratch-block border-l-4 border-l-[#fbbc04] border-t border-r border-b border-slate-300 bg-white p-3 shadow-sm hover:border-slate-400 transition-colors"
+                {...dragProps}
+                className={`scratch-block border-l-4 border-l-[#fbbc04] border-t border-r border-b border-slate-300 bg-white p-3.5 shadow-sm hover:border-slate-400 transition-all ${dragRingClass} ${dragOpacityClass}`}
               >
-                <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-2.5 gap-2">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-3 gap-2">
                   <div className="flex items-center space-x-2 min-w-0 flex-1">
-                    <span className="text-slate-300 shrink-0" aria-hidden="true">
-                      <GripVertical className="w-3.5 h-3.5" />
-                    </span>
-                    <div className="inline-block px-2 py-0.5 text-[10px] font-mono bg-[#fef7e0] text-[#b06000] border border-[#ffe7a5] font-bold shrink-0">
+                    {gripHandle}
+                    <div className="inline-block px-2 py-0.5 text-xs font-mono bg-[#fef7e0] text-[#b06000] border border-[#ffe7a5] font-bold shrink-0">
                       choice
                     </div>
                     <input
@@ -311,32 +379,32 @@ export function QuestionBuilder({
                       }
                       placeholder="question_key"
                       aria-label="Choice question key"
-                      className="text-xs font-mono font-semibold text-[#1e1e1e] bg-transparent border border-transparent hover:border-slate-200 focus:border-[#fbbc04] focus:bg-[#f8f9fa] px-1.5 py-0.5 focus:outline-none min-w-0 flex-1"
+                      className="text-sm font-mono font-semibold text-[#1e1e1e] bg-transparent border border-transparent hover:border-slate-200 focus:border-[#fbbc04] focus:bg-[#f8f9fa] px-1.5 py-0.5 focus:outline-none min-w-0 flex-1"
                     />
                   </div>
                   <div className="flex items-center space-x-1 shrink-0">
                     {reorderControls}
-                    <span className="text-[10px] font-mono text-slate-400 hidden sm:inline">
+                    <span className="text-xs font-mono text-slate-400 hidden sm:inline">
                       choice ({q.options.length})
                     </span>
                     <button
                       type="button"
                       onClick={() => removeQuestion(q.id)}
-                      className="text-slate-300 hover:text-[#ea4335] p-0.5 ml-1 transition-colors cursor-pointer"
+                      className="text-slate-400 hover:text-[#ea4335] p-0.5 ml-1 transition-colors cursor-pointer"
                       title="Delete block"
                       aria-label="Delete choice question"
                     >
-                      <X className="w-3.5 h-3.5" />
+                      <X className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <div className="flex items-center text-xs font-sans">
-                    <span className="w-16 text-slate-400 text-[11px] font-mono shrink-0">
+                <div className="space-y-2.5">
+                  <div className="flex items-center text-sm font-sans">
+                    <span className="w-20 text-slate-400 text-xs font-mono shrink-0">
                       question
                     </span>
-                    <div className="flex-1 flex items-center border border-slate-200 bg-[#f8f9fa] px-2 py-1 focus-within:border-[#fbbc04] focus-within:bg-white">
+                    <div className="flex-1 flex items-center border border-slate-200 bg-[#f8f9fa] px-2.5 py-1.5 focus-within:border-[#fbbc04] focus-within:bg-white">
                       <input
                         type="text"
                         value={q.instructions}
@@ -344,22 +412,22 @@ export function QuestionBuilder({
                           updateChoice(q.id, { instructions: e.target.value })
                         }
                         placeholder="Ask a mutually exclusive single-select question..."
-                        className="bg-transparent border-0 p-0 text-xs font-sans text-[#1e1e1e] w-full focus:ring-0 focus:outline-none"
+                        className="bg-transparent border-0 p-0 text-sm font-sans text-[#1e1e1e] w-full focus:ring-0 focus:outline-none"
                       />
                     </div>
                   </div>
 
-                  <div className="flex items-start text-xs font-sans">
-                    <span className="w-16 text-slate-400 text-[11px] font-mono shrink-0 pt-1">
+                  <div className="flex items-start text-sm font-sans">
+                    <span className="w-20 text-slate-400 text-xs font-mono shrink-0 pt-1.5">
                       options
                     </span>
-                    <div className="flex-1 space-y-1.5">
+                    <div className="flex-1 space-y-2">
                       {q.options.map((opt, optIdx) => (
                         <div
                           key={opt.id}
-                          className="flex items-center space-x-1.5"
+                          className="flex items-center space-x-2"
                         >
-                          <span className="text-[10px] font-mono text-slate-400 w-4 shrink-0">
+                          <span className="text-xs font-mono text-slate-400 w-5 shrink-0">
                             {optIdx + 1}.
                           </span>
                           <input
@@ -370,7 +438,7 @@ export function QuestionBuilder({
                             }
                             placeholder="option_id"
                             aria-label={`Option ${optIdx + 1} key`}
-                            className="w-32 sm:w-36 border border-slate-200 bg-[#f8f9fa] px-2 py-0.5 text-xs font-mono text-[#1e1e1e] focus:outline-none focus:border-[#fbbc04] focus:bg-white shrink-0"
+                            className="w-36 sm:w-40 border border-slate-200 bg-[#f8f9fa] px-2.5 py-1 text-sm font-mono text-[#1e1e1e] focus:outline-none focus:border-[#fbbc04] focus:bg-white shrink-0"
                           />
                           <input
                             type="text"
@@ -382,13 +450,13 @@ export function QuestionBuilder({
                             }
                             placeholder="Criteria description (optional)"
                             aria-label={`Option ${optIdx + 1} description`}
-                            className="flex-1 min-w-0 border border-slate-200 bg-white px-2 py-0.5 text-xs font-sans text-[#1e1e1e] focus:outline-none focus:border-[#fbbc04]"
+                            className="flex-1 min-w-0 border border-slate-200 bg-white px-2.5 py-1 text-sm font-sans text-[#1e1e1e] focus:outline-none focus:border-[#fbbc04]"
                           />
                           <button
                             type="button"
                             onClick={() => removeOption(opt.id)}
                             disabled={q.options.length <= 2}
-                            className="text-slate-300 hover:text-[#ea4335] disabled:opacity-30 px-1 cursor-pointer disabled:cursor-default"
+                            className="text-slate-400 hover:text-[#ea4335] disabled:opacity-30 px-1 text-base cursor-pointer disabled:cursor-default"
                             title={
                               q.options.length <= 2
                                 ? "At least 2 options required"
@@ -405,7 +473,7 @@ export function QuestionBuilder({
                         <button
                           type="button"
                           onClick={addOption}
-                          className="text-[10px] font-sans text-[#b06000] hover:text-[#ea4335] font-semibold flex items-center space-x-0.5 cursor-pointer"
+                          className="text-xs font-sans text-[#b06000] hover:text-[#ea4335] font-semibold flex items-center space-x-0.5 cursor-pointer"
                         >
                           <span>+ Add Option</span>
                         </button>
@@ -426,10 +494,10 @@ export function QuestionBuilder({
                                 ],
                               })
                             }
-                            className="inline-flex items-center space-x-1 text-[10px] font-mono text-[#b06000] bg-[#fef7e0] border border-[#ffe7a5] px-1.5 py-0.5 hover:bg-[#ffe7a5]/60 transition-colors cursor-pointer"
+                            className="inline-flex items-center space-x-1 text-xs font-mono text-[#b06000] bg-[#fef7e0] border border-[#ffe7a5] px-2 py-0.5 hover:bg-[#ffe7a5]/60 transition-colors cursor-pointer"
                             title="Keys sort alphabetically in UTF-8. Adding 'other' avoids forced misclassification."
                           >
-                            <AlertTriangle className="w-2.5 h-2.5 shrink-0" />
+                            <AlertTriangle className="w-3 h-3 shrink-0" />
                             <span>Tip: add &quot;other&quot; fallback</span>
                           </button>
                         )}
@@ -465,14 +533,13 @@ export function QuestionBuilder({
           return (
             <div
               key={q.id}
-              className="scratch-block border-l-4 border-l-[#34a853] border-t border-r border-b border-slate-300 bg-white p-3 shadow-sm hover:border-slate-400 transition-colors"
+              {...dragProps}
+              className={`scratch-block border-l-4 border-l-[#34a853] border-t border-r border-b border-slate-300 bg-white p-3.5 shadow-sm hover:border-slate-400 transition-all ${dragRingClass} ${dragOpacityClass}`}
             >
-              <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-2.5 gap-2">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-3 gap-2">
                 <div className="flex items-center space-x-2 min-w-0 flex-1">
-                  <span className="text-slate-300 shrink-0" aria-hidden="true">
-                    <GripVertical className="w-3.5 h-3.5" />
-                  </span>
-                  <div className="inline-block px-2 py-0.5 text-[10px] font-mono bg-[#e6f4ea] text-[#137333] border border-[#ccf6c5] font-bold shrink-0">
+                  {gripHandle}
+                  <div className="inline-block px-2 py-0.5 text-xs font-mono bg-[#e6f4ea] text-[#137333] border border-[#ccf6c5] font-bold shrink-0">
                     score
                   </div>
                   <input
@@ -481,32 +548,32 @@ export function QuestionBuilder({
                     onChange={(e) => updateScore(q.id, { key: e.target.value })}
                     placeholder="question_key"
                     aria-label="Score question key"
-                    className="text-xs font-mono font-semibold text-[#1e1e1e] bg-transparent border border-transparent hover:border-slate-200 focus:border-[#34a853] focus:bg-[#f8f9fa] px-1.5 py-0.5 focus:outline-none min-w-0 flex-1"
+                    className="text-sm font-mono font-semibold text-[#1e1e1e] bg-transparent border border-transparent hover:border-slate-200 focus:border-[#34a853] focus:bg-[#f8f9fa] px-1.5 py-0.5 focus:outline-none min-w-0 flex-1"
                   />
                 </div>
                 <div className="flex items-center space-x-1 shrink-0">
                   {reorderControls}
-                  <span className="text-[10px] font-mono text-slate-400 hidden sm:inline">
+                  <span className="text-xs font-mono text-slate-400 hidden sm:inline">
                     score [0..{Math.max(1, q.levels.length - 1)}]
                   </span>
                   <button
                     type="button"
                     onClick={() => removeQuestion(q.id)}
-                    className="text-slate-300 hover:text-[#ea4335] p-0.5 ml-1 transition-colors cursor-pointer"
+                    className="text-slate-400 hover:text-[#ea4335] p-0.5 ml-1 transition-colors cursor-pointer"
                     title="Delete block"
                     aria-label="Delete score question"
                   >
-                    <X className="w-3.5 h-3.5" />
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center text-xs font-sans">
-                  <span className="w-16 text-slate-400 text-[11px] font-mono shrink-0">
+              <div className="space-y-2.5">
+                <div className="flex items-center text-sm font-sans">
+                  <span className="w-20 text-slate-400 text-xs font-mono shrink-0">
                     rubric
                   </span>
-                  <div className="flex-1 flex items-center border border-slate-200 bg-[#f8f9fa] px-2 py-1 focus-within:border-[#34a853] focus-within:bg-white">
+                  <div className="flex-1 flex items-center border border-slate-200 bg-[#f8f9fa] px-2.5 py-1.5 focus-within:border-[#34a853] focus-within:bg-white">
                     <input
                       type="text"
                       value={q.instructions}
@@ -514,23 +581,23 @@ export function QuestionBuilder({
                         updateScore(q.id, { instructions: e.target.value })
                       }
                       placeholder="Describe what to grade on this ordered rubric..."
-                      className="bg-transparent border-0 p-0 text-xs font-sans text-[#1e1e1e] w-full focus:ring-0 focus:outline-none"
+                      className="bg-transparent border-0 p-0 text-sm font-sans text-[#1e1e1e] w-full focus:ring-0 focus:outline-none"
                     />
                   </div>
                 </div>
 
                 {/* Ordered 0-indexed rubric level text inputs */}
-                <div className="flex items-start text-xs font-sans">
-                  <span className="w-16 text-slate-400 text-[11px] font-mono shrink-0 pt-1">
+                <div className="flex items-start text-sm font-sans">
+                  <span className="w-20 text-slate-400 text-xs font-mono shrink-0 pt-1.5">
                     levels
                   </span>
-                  <div className="flex-1 space-y-1.5">
+                  <div className="flex-1 space-y-2">
                     {q.levels.map((levelText, lvlIdx) => (
                       <div
                         key={lvlIdx}
-                        className="flex items-center space-x-1.5"
+                        className="flex items-center space-x-2"
                       >
-                        <span className="text-[10px] font-mono font-bold text-[#137333] bg-[#e6f4ea] border border-[#ccf6c5] w-6 text-center py-0.5 shrink-0">
+                        <span className="text-xs font-mono font-bold text-[#137333] bg-[#e6f4ea] border border-[#ccf6c5] w-7 text-center py-1 shrink-0">
                           {lvlIdx}
                         </span>
                         <input
@@ -539,13 +606,13 @@ export function QuestionBuilder({
                           onChange={(e) => updateLevel(lvlIdx, e.target.value)}
                           placeholder={`Describe rubric level ${lvlIdx}...`}
                           aria-label={`Rubric level ${lvlIdx}`}
-                          className="flex-1 min-w-0 border border-slate-200 bg-white px-2 py-0.5 text-xs font-sans text-[#1e1e1e] focus:outline-none focus:border-[#34a853]"
+                          className="flex-1 min-w-0 border border-slate-200 bg-white px-2.5 py-1 text-sm font-sans text-[#1e1e1e] focus:outline-none focus:border-[#34a853]"
                         />
                         <button
                           type="button"
                           onClick={() => removeLevel(lvlIdx)}
                           disabled={q.levels.length <= 2}
-                          className="text-slate-300 hover:text-[#ea4335] disabled:opacity-30 px-1 cursor-pointer disabled:cursor-default"
+                          className="text-slate-400 hover:text-[#ea4335] disabled:opacity-30 px-1 text-base cursor-pointer disabled:cursor-default"
                           title={
                             q.levels.length <= 2
                               ? "At least 2 rubric levels required"
@@ -561,7 +628,7 @@ export function QuestionBuilder({
                     <button
                       type="button"
                       onClick={addLevel}
-                      className="text-[10px] font-sans text-[#137333] hover:text-[#1e1e1e] font-semibold pt-0.5 flex items-center space-x-0.5 cursor-pointer"
+                      className="text-xs font-sans text-[#137333] hover:text-[#1e1e1e] font-semibold pt-0.5 flex items-center space-x-0.5 cursor-pointer"
                     >
                       <span>+ Add Level</span>
                     </button>
@@ -574,19 +641,19 @@ export function QuestionBuilder({
 
         {/* Add Output Block Palette — Strictly 3 columns (+ noul, + choice, + score) */}
         <div className="pt-2">
-          <div className="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1.5">
+          <div className="text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">
             Add Output Block
           </div>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-2.5">
             <button
               type="button"
               onClick={() => onAddQuestion("noul")}
-              className="p-2 bg-[#f8fafd] border border-[#c3ecf6] hover:border-[#4285f4] hover:bg-[#e8f0fe] text-left transition-colors cursor-pointer"
+              className="p-2.5 bg-[#f8fafd] border border-[#c3ecf6] hover:border-[#4285f4] hover:bg-[#e8f0fe] text-left transition-colors cursor-pointer"
             >
-              <div className="text-[10px] font-mono font-bold text-[#1967d2]">
+              <div className="text-xs font-mono font-bold text-[#1967d2]">
                 + noul
               </div>
-              <div className="text-[10px] text-slate-600 font-sans truncate">
+              <div className="text-xs text-slate-600 font-sans truncate">
                 Boolean condition
               </div>
             </button>
@@ -594,12 +661,12 @@ export function QuestionBuilder({
             <button
               type="button"
               onClick={() => onAddQuestion("choice")}
-              className="p-2 bg-[#fefdf8] border border-[#ffe7a5] hover:border-[#fbbc04] hover:bg-[#fef7e0] text-left transition-colors cursor-pointer"
+              className="p-2.5 bg-[#fefdf8] border border-[#ffe7a5] hover:border-[#fbbc04] hover:bg-[#fef7e0] text-left transition-colors cursor-pointer"
             >
-              <div className="text-[10px] font-mono font-bold text-[#b06000]">
+              <div className="text-xs font-mono font-bold text-[#b06000]">
                 + choice
               </div>
-              <div className="text-[10px] text-slate-600 font-sans truncate">
+              <div className="text-xs text-slate-600 font-sans truncate">
                 Multiple choice
               </div>
             </button>
@@ -607,12 +674,12 @@ export function QuestionBuilder({
             <button
               type="button"
               onClick={() => onAddQuestion("score")}
-              className="p-2 bg-[#f8fdf9] border border-[#ccf6c5] hover:border-[#34a853] hover:bg-[#e6f4ea] text-left transition-colors cursor-pointer"
+              className="p-2.5 bg-[#f8fdf9] border border-[#ccf6c5] hover:border-[#34a853] hover:bg-[#e6f4ea] text-left transition-colors cursor-pointer"
             >
-              <div className="text-[10px] font-mono font-bold text-[#137333]">
+              <div className="text-xs font-mono font-bold text-[#137333]">
                 + score
               </div>
-              <div className="text-[10px] text-slate-600 font-sans truncate">
+              <div className="text-xs text-slate-600 font-sans truncate">
                 Rubric scoring
               </div>
             </button>
