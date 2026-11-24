@@ -122,7 +122,7 @@ export function StateBuilder({
   return (
     <section aria-label="State input builder">
       {/* Sticky State Header */}
-      <div className="px-4 py-2.5 border-b border-slate-200 flex items-center justify-between bg-white sticky top-0 z-10">
+      <div className="px-3 sm:px-4 py-2.5 border-b border-slate-200 flex items-center justify-between bg-white sticky top-0 z-10">
         <div className="flex items-center space-x-2">
           <span className="text-sm font-semibold text-slate-800 font-sans tracking-wide">
             State
@@ -162,14 +162,17 @@ export function StateBuilder({
       </div>
 
       {/* State Canvas */}
-      <div className="p-3.5 bg-[#fafbfc] border-b border-slate-200 space-y-3">
+      <div className="p-3 sm:p-3.5 bg-[#fafbfc] border-b border-slate-200 space-y-3">
         {viewMode === "raw" ? (
           <div className="bg-[#1e1e1e] text-[#f0f0f0] border border-[#1e1e1e]">
-            <div className="px-3 py-2 border-b border-[#333333] flex items-center justify-between text-xs font-mono">
+            <div className="px-3 py-2 border-b border-[#333333] flex flex-wrap items-center justify-between gap-1 text-xs font-mono">
               <span className="text-[#57caff]">~/gdg-console/input.json</span>
               <span className="text-slate-400">shared prefix · billed once</span>
             </div>
-            <pre className="p-3.5 text-[13px] font-mono leading-relaxed overflow-x-auto code-editor">
+            <pre
+              tabIndex={0}
+              className="p-3 sm:p-3.5 text-xs sm:text-[13px] font-mono leading-relaxed overflow-x-auto code-editor"
+            >
               {rawPreview}
             </pre>
           </div>
@@ -249,8 +252,8 @@ export function StateBuilder({
                     {...dragProps}
                     className={`scratch-block bg-white border-l-4 border-l-[#4285f4] border-t border-r border-b border-slate-300 p-3 shadow-sm hover:border-slate-400 transition-all ${dragRingClass} ${dragOpacityClass}`}
                   >
-                    <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-2.5">
-                      <div className="flex items-center space-x-2">
+                    <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-100 mb-2.5">
+                      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 min-w-0">
                         {gripHandle}
                         <div className="inline-flex items-center bg-[#e8f0fe] border border-[#c3ecf6] px-2 py-0.5 text-xs font-mono font-bold text-[#1967d2]">
                           <span className="mr-1 text-[#4285f4]">SET</span>
@@ -301,7 +304,7 @@ export function StateBuilder({
                     </div>
 
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 text-sm font-mono">
-                      <div className="flex items-center border border-slate-200 bg-[#f8f9fa] px-2.5 py-1.5 flex-1 min-w-[140px] focus-within:border-[#4285f4]">
+                      <div className="flex items-center border border-slate-200 bg-[#f8f9fa] px-2.5 py-1.5 flex-1 min-w-0 sm:min-w-[140px] focus-within:border-[#4285f4]">
                         <span className="text-xs text-slate-500 font-sans mr-1.5 shrink-0">
                           key:
                         </span>
@@ -377,8 +380,8 @@ export function StateBuilder({
                   {...dragProps}
                   className={`scratch-block bg-white border-l-4 border-l-[#ea4335] border-t border-r border-b border-slate-300 p-3 shadow-sm hover:border-slate-400 transition-all ${dragRingClass} ${dragOpacityClass}`}
                 >
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-2.5">
-                    <div className="flex items-center space-x-2">
+                  <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-100 mb-2.5">
+                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 min-w-0">
                       {gripHandle}
                       <div className="inline-flex items-center bg-[#fce8e6] border border-[#f8d8d8] px-2 py-0.5 text-xs font-mono font-bold text-[#c5221f]">
                         <span className="mr-1 text-[#ea4335]">ATTACH</span>
@@ -405,7 +408,7 @@ export function StateBuilder({
                   </div>
 
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 text-sm font-mono">
-                    <div className="flex items-center border border-slate-200 bg-[#f8f9fa] px-2.5 py-1.5 flex-1 min-w-[140px] focus-within:border-[#ea4335]">
+                    <div className="flex items-center border border-slate-200 bg-[#f8f9fa] px-2.5 py-1.5 flex-1 min-w-0 sm:min-w-[140px] focus-within:border-[#ea4335]">
                       <span className="text-xs text-slate-500 font-sans mr-1.5 shrink-0">
                         key:
                       </span>
@@ -453,11 +456,11 @@ export function StateBuilder({
             })}
 
             {/* Add State Block Buttons */}
-            <div className="pt-1 flex items-center space-x-2">
+            <div className="pt-1 flex flex-wrap items-center gap-2">
               <button
                 type="button"
                 onClick={onAddVariable}
-                className="inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-sans font-medium text-[#1967d2] bg-[#e8f0fe] hover:bg-[#d2e3fc] border border-[#c3ecf6] shadow-sm transition-colors cursor-pointer"
+                className="touch-target inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-sans font-medium text-[#1967d2] bg-[#e8f0fe] hover:bg-[#d2e3fc] border border-[#c3ecf6] shadow-sm transition-colors cursor-pointer"
               >
                 <span className="text-[#4285f4] font-bold">+</span>
                 <span>Add State Block</span>
@@ -465,7 +468,7 @@ export function StateBuilder({
               <button
                 type="button"
                 onClick={onAddAsset}
-                className="inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-sans text-slate-600 bg-white hover:bg-slate-50 border border-dashed border-slate-300 transition-colors cursor-pointer"
+                className="touch-target inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-sans text-slate-600 bg-white hover:bg-slate-50 border border-dashed border-slate-300 transition-colors cursor-pointer"
               >
                 <Upload className="w-3.5 h-3.5 text-slate-400" />
                 <span>Attach Asset Block</span>

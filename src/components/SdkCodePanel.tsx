@@ -114,15 +114,18 @@ export function SdkCodePanel({
           </div>
         </div>
 
-        <pre className="p-4 text-[13px] font-mono leading-relaxed overflow-x-auto code-editor text-[#f0f0f0]">
+        <pre
+          tabIndex={0}
+          className="p-3 sm:p-4 text-xs sm:text-[13px] font-mono leading-relaxed overflow-x-auto code-editor text-[#f0f0f0]"
+        >
           <code>{code}</code>
         </pre>
       </div>
 
       {/* Raw API Response JSON Terminal Panel */}
       <div className="bg-[#1e1e1e] text-[#f0f0f0] border border-[#1e1e1e]">
-        <div className="px-3.5 py-2.5 border-b border-[#333333] flex items-center justify-between gap-2">
-          <div className="flex items-center space-x-2 text-xs font-mono">
+        <div className="px-3.5 py-2.5 border-b border-[#333333] flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-mono min-w-0">
             <span className="text-[#57caff]">~/gdg-console/response.json</span>
             {response && (
               <span className="text-xs text-[#5cdb6d]">
@@ -136,7 +139,7 @@ export function SdkCodePanel({
             <button
               type="button"
               onClick={() => void copyText(rawJson, setCopiedJson)}
-              className="inline-flex items-center space-x-1.5 px-2.5 py-1 text-xs font-mono border border-[#444444] bg-[#262626] hover:bg-[#333333] text-[#f0f0f0] transition-colors cursor-pointer"
+              className="inline-flex items-center space-x-1.5 px-2.5 py-1 text-xs font-mono border border-[#444444] bg-[#262626] hover:bg-[#333333] text-[#f0f0f0] transition-colors cursor-pointer shrink-0"
             >
               {copiedJson ? (
                 <>
@@ -154,12 +157,15 @@ export function SdkCodePanel({
         </div>
 
         {rawJson ? (
-          <pre className="p-4 text-[13px] font-mono leading-relaxed overflow-x-auto code-editor text-[#f0f0f0]">
+          <pre
+            tabIndex={0}
+            className="p-3 sm:p-4 text-xs sm:text-[13px] font-mono leading-relaxed overflow-x-auto code-editor text-[#f0f0f0]"
+          >
             <code>{rawJson}</code>
           </pre>
         ) : (
-          <div className="p-4 text-sm font-mono text-slate-400">
-            {"// Run a request (Ctrl+Enter) to inspect the raw JSON response."}
+          <div className="p-4 text-xs sm:text-sm font-mono text-slate-400">
+            {"// Run a request to inspect the raw JSON response."}
           </div>
         )}
       </div>

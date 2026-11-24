@@ -1,0 +1,30 @@
+# Dependencies & build artifacts
+node_modules
+.next
+out
+build
+coverage
+.turbo
+*.tsbuildinfo
+
+# Local secrets (never bake into image or upload to Cloud Build)
+.env
+.env.*
+!.env.example
+*.pem
+
+# VCS & editor files
+.git
+.gitignore
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Non-runtime design/reference docs
+design
+DESIGN.md
+code.html
+screen.png
+README.md
+AGENTS.md
