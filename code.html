@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Gemini Decisions Playground</title>
+<!-- BEGIN: External Styles and Fonts -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Roboto+Mono:wght@300;400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- END: External Styles and Fonts -->
+<!-- BEGIN: Tailwind Configuration -->
+<script data-purpose="tailwind-config">
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['"Fira Code"', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+          },
+          colors: {
+            panel: '#ffffff',
+            canvas: '#fbfbfc',
+            sidebar: '#f8f9fa',
+            borderSubtle: '#eaecf0',
+            borderMuted: '#e2e5e9',
+            brandPink: {
+              50: '#fdf2f8',
+              100: '#fce7f3',
+              200: '#fbcfe8',
+              700: '#be185d',
+              800: '#9d174d',
+            },
+            accentLilac: '#f5f3ff',
+            accentText: '#6366f1',
+          }
+        }
+      }
+    }
+  </script>
+<!-- END: Tailwind Configuration -->
+<!-- BEGIN: Custom Micro-Styles -->
+<style data-purpose="typography">
+    body {
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+      -webkit-font-smoothing: antialiased;
+    }
+    .code-editor {
+      tab-size: 2;
+    }
+  </style>
+<style data-purpose="decorative-patterns">
+    /* Halftone stipple pattern simulation for the banner */
+    .stipple-banner {
+      background-color: #f7eff7;
+      background-image: radial-gradient(#d8b4e2 0.75px, transparent 0.75px), radial-gradient(#e9d5ff 0.75px, #fbf7fb 0.75px);
+      background-size: 10px 10px;
+      background-position: 0 0, 5px 5px;
+    }
+    .cursor-blink {
+      animation: blink 1s step-end infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+    /* Block notch tabs for Scratch-like puzzle visual connectors */
+    .scratch-block {
+      position: relative;
+    }
+    .scratch-block::before {
+      content: '';
+      position: absolute;
+      top: -3px;
+      left: 28px;
+      width: 14px;
+      height: 4px;
+      background: inherit;
+      border-top: 1px solid #cbd5e1;
+      border-left: 1px solid #cbd5e1;
+      border-right: 1px solid #cbd5e1;
+      z-index: 10;
+    }
+    .scratch-block::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 28px;
+      width: 14px;
+      height: 4px;
+      background: #ffffff;
+      border-bottom: 1px solid #cbd5e1;
+      border-left: 1px solid #cbd5e1;
+      border-right: 1px solid #cbd5e1;
+      z-index: 10;
+    }
+  </style>
+<!-- END: Custom Micro-Styles -->
+<style data-purpose="sharp-corners">*, *::before, *::after { border-radius: 0px !important; }</style></head>
+<body class="bg-canvas text-slate-800 antialiased h-screen flex flex-col overflow-hidden select-none font-sans">
+<!-- BEGIN: TopHeader -->
+<header class="h-10 border-b border-slate-200 bg-white flex items-center justify-between px-3 z-20 shrink-0" data-purpose="application-header"><div class="flex items-center space-x-2"><div class="flex items-center space-x-1.5 mr-1">
+<span class="w-2.5 h-2.5 bg-[#4285f4] inline-block"></span>
+<span class="w-2.5 h-2.5 bg-[#ea4335] inline-block"></span>
+<span class="w-2.5 h-2.5 bg-[#fbbc04] inline-block"></span>
+<span class="w-2.5 h-2.5 bg-[#34a853] inline-block"></span>
+</div>
+<span class="text-xs font-bold text-[#1e1e1e] font-sans tracking-tight">Google Developer Group</span>
+<span class="text-slate-400 text-xs px-1 font-mono">/</span>
+<span class="text-xs font-medium text-slate-700">Playground</span>
+<span class="px-1.5 py-0.5 text-[10px] font-mono bg-[#e8f0fe] text-[#1967d2] border border-[#c3ecf6] ml-1 font-semibold">GDG Edition</span></div><div class="flex items-center space-x-2"><button class="px-2.5 py-0.5 text-xs text-slate-500 hover:text-slate-800 transition-colors" data-purpose="clear-button" type="button">Clear</button><button class="inline-flex items-center space-x-1 px-2 py-0.5 text-xs text-slate-600 hover:text-slate-900 border border-slate-200 bg-white transition-colors" type="button"><svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg><span>Share</span></button><button class="p-1 text-slate-600 hover:text-slate-900 border border-slate-200 transition-colors" title="Parameters" type="button"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24"><circle cx="7" cy="6" r="2"></circle><circle cx="17" cy="12" r="2"></circle><circle cx="7" cy="18" r="2"></circle><line x1="1" x2="5" y1="6" y2="6"></line><line x1="9" x2="23" y1="6" y2="6"></line><line x1="1" x2="15" y1="12" y2="12"></line><line x1="19" x2="23" y1="12" y2="12"></line><line x1="1" x2="5" y1="18" y2="18"></line><line x1="9" x2="23" y1="18" y2="18"></line></svg></button></div></header>
+<!-- END: TopHeader -->
+<!-- BEGIN: MainContentGrid -->
+<main class="flex-1 flex overflow-hidden"><section class="w-1/2 flex flex-col border-r border-slate-200 bg-white h-full relative overflow-hidden" data-purpose="input-builder-pane">
+<div class="flex-1 overflow-y-auto">
+<!-- BEGIN: State Block Section -->
+<div class="px-4 py-2 border-b border-slate-200 flex items-center justify-between bg-white sticky top-0 z-10">
+<div class="flex items-center space-x-2">
+<span class="text-xs font-semibold text-slate-700 font-sans tracking-wide">State</span>
+<span class="text-[10px] font-mono px-1.5 py-0.2 bg-slate-100 text-slate-500 border border-slate-200">2 variables</span>
+</div>
+<div class="flex items-center space-x-1">
+<div class="inline-flex border border-slate-200 bg-slate-50">
+<button class="p-1 bg-white text-slate-700 border-r border-slate-200" title="Visual Block Mode">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><rect height="7" width="7" x="3" y="3"></rect><rect height="7" width="7" x="14" y="3"></rect><rect height="7" width="7" x="14" y="14"></rect><rect height="7" width="7" x="3" y="14"></rect></svg>
+</button>
+<button class="p-1 text-slate-400 hover:text-slate-700" title="Raw Code View">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+</button>
+</div>
+</div>
+</div>
+<!-- Visual Scratch-like Blocks Canvas for State -->
+<div class="p-3 bg-[#fafbfc] border-b border-slate-200 space-y-2.5" id="state-blocks-container">
+<!-- Block 1: Set State Variable -->
+<div class="scratch-block bg-white border-l-4 border-l-[#4285f4] border-t border-r border-b border-slate-300 p-2.5 shadow-sm hover:border-slate-400 transition-colors">
+<div class="flex items-center justify-between pb-1.5 border-b border-slate-100 mb-2">
+<div class="flex items-center space-x-2">
+<div class="cursor-grab text-slate-300 hover:text-slate-500 py-0.5">
+<svg class="w-3.5 h-3.5" fill="currentColor" viewbox="0 0 24 24">
+<circle cx="9" cy="6" r="1.5"></circle>
+<circle cx="15" cy="6" r="1.5"></circle>
+<circle cx="9" cy="12" r="1.5"></circle>
+<circle cx="15" cy="12" r="1.5"></circle>
+<circle cx="9" cy="18" r="1.5"></circle>
+<circle cx="15" cy="18" r="1.5"></circle>
+</svg>
+</div>
+<div class="inline-flex items-center bg-[#e8f0fe] border border-[#c3ecf6] px-2 py-0.5 text-[10px] font-mono font-bold text-[#1967d2]">
+<span class="mr-1 text-[#4285f4]">SET</span>
+<span class="text-[#1967d2] font-sans">state.</span>
+</div>
+<select class="text-[10px] font-mono border border-slate-200 bg-white px-1.5 py-0.5 text-slate-700 focus:outline-none focus:border-[#4285f4]">
+<option selected="">string</option>
+<option>number</option>
+<option>boolean</option>
+<option>json</option>
+</select>
+</div>
+<button class="text-slate-300 hover:text-[#ea4335] p-0.5 transition-colors" title="Delete block">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
+</button>
+</div>
+<div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 text-xs font-mono">
+<div class="flex items-center border border-slate-200 bg-[#f8f9fa] px-2 py-1 flex-1 min-w-[130px]">
+<span class="text-[10px] text-slate-500 font-sans mr-1">key:</span>
+<input class="bg-transparent border-0 p-0 text-xs font-mono text-[#1e1e1e] w-full focus:ring-0 focus:outline-none" type="text" value="example_state"/>
+</div>
+<div class="hidden sm:flex items-center justify-center text-slate-400 px-0.5 font-sans text-xs">=</div>
+<div class="flex items-center border border-slate-200 bg-white px-2 py-1 flex-[2]">
+<span class="text-[10px] text-slate-500 font-sans mr-1">value:</span>
+<input class="bg-transparent border-0 p-0 text-xs font-mono text-[#1e1e1e] w-full focus:ring-0 focus:outline-none" type="text" value="Add context for TypeSafe to evaluate."/>
+</div>
+</div>
+</div>
+<!-- Block 2: Attach Asset Reference Block -->
+<div class="scratch-block bg-white border-l-4 border-l-[#ea4335] border-t border-r border-b border-slate-300 p-2.5 shadow-sm hover:border-slate-400 transition-colors">
+<div class="flex items-center justify-between pb-1.5 border-b border-slate-100 mb-2">
+<div class="flex items-center space-x-2">
+<div class="cursor-grab text-slate-300 hover:text-slate-500 py-0.5">
+<svg class="w-3.5 h-3.5" fill="currentColor" viewbox="0 0 24 24">
+<circle cx="9" cy="6" r="1.5"></circle>
+<circle cx="15" cy="6" r="1.5"></circle>
+<circle cx="9" cy="12" r="1.5"></circle>
+<circle cx="15" cy="12" r="1.5"></circle>
+<circle cx="9" cy="18" r="1.5"></circle>
+<circle cx="15" cy="18" r="1.5"></circle>
+</svg>
+</div>
+<div class="inline-flex items-center bg-[#fce8e6] border border-[#f8d8d8] px-2 py-0.5 text-[10px] font-mono font-bold text-[#c5221f]">
+<span class="mr-1 text-[#ea4335]">ATTACH</span>
+<span>asset_ref</span>
+</div>
+<span class="text-[10px] font-mono text-[#c5221f] bg-[#f8d8d8] px-1 border border-[#f8d8d8]">Image / File</span>
+</div>
+<button class="text-slate-300 hover:text-[#ea4335] p-0.5 transition-colors" title="Delete block">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
+</button>
+</div>
+<div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 text-xs font-mono">
+<div class="flex items-center border border-slate-200 bg-[#f8f9fa] px-2 py-1 flex-1 min-w-[130px]">
+<span class="text-[10px] text-slate-500 font-sans mr-1">key:</span>
+<input class="bg-transparent border-0 p-0 text-xs font-mono text-[#1e1e1e] w-full focus:ring-0 focus:outline-none" type="text" value="optional_asset"/>
+</div>
+<div class="hidden sm:flex items-center justify-center text-slate-400 px-0.5 font-sans text-xs">=</div>
+<div class="flex items-center justify-between border border-dashed border-[#ea4335] bg-[#fce8e6]/50 px-2 py-1 flex-[2] cursor-pointer hover:bg-[#fce8e6]">
+<div class="flex items-center space-x-1.5 truncate">
+<svg class="w-3.5 h-3.5 text-[#ea4335] shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><rect height="18" rx="2" ry="2" width="18" x="3" y="3"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+<span class="text-[11px] font-sans text-[#c5221f] truncate font-medium">sample-shelf-photo.jpg (124 KB)</span>
+</div>
+<span class="text-[10px] font-sans text-[#ea4335] underline shrink-0 ml-1 font-semibold">Replace</span>
+</div>
+</div>
+</div>
+<!-- Add State Block Buttons -->
+<div class="pt-1 flex items-center space-x-2">
+<button class="inline-flex items-center space-x-1 px-2.5 py-1 text-[11px] font-sans font-medium text-[#1967d2] bg-[#e8f0fe] hover:bg-[#d2e3fc] border border-[#c3ecf6] shadow-sm transition-colors" type="button">
+<span class="text-[#4285f4] font-bold">+</span>
+<span>Add State Block</span>
+</button>
+<button class="inline-flex items-center space-x-1 px-2.5 py-1 text-[11px] font-sans text-slate-500 bg-white hover:bg-slate-50 border border-dashed border-slate-200 transition-colors" type="button">
+<svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" x2="12" y1="3" y2="15"></line></svg>
+<span>Attach Asset Block</span>
+</button>
+</div>
+</div>
+<!-- END: State Block Section -->
+<!-- BEGIN: Questions Block Section -->
+<div class="px-4 py-2 border-b border-slate-200 flex items-center justify-between bg-white sticky top-0 z-10">
+<div class="flex items-center space-x-2">
+<span class="text-xs font-semibold text-slate-700 font-sans tracking-wide">Questions</span>
+<span class="text-[10px] font-mono px-1.5 py-0.2 bg-slate-100 text-slate-500 border border-slate-200">3 blocks</span>
+</div>
+<div class="flex items-center space-x-2 text-[11px] text-slate-400">
+<button class="cursor-pointer hover:text-slate-600" type="button">Reorder</button>
+<span class="flex items-center space-x-0.5 text-slate-400">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" x2="12" y1="8" y2="12"></line><line x1="12" x2="12.01" y1="16" y2="16"></line></svg>
+<span>3 rules</span>
+</span>
+</div>
+</div>
+<!-- Scratch-style Modular Question Blocks -->
+<div class="p-3 bg-white space-y-3" id="questions-blocks-container">
+<!-- Question Block 1: NOUL (Boolean / True-False condition) -->
+<div class="scratch-block border-l-4 border-l-[#4285f4] border-t border-r border-b border-slate-300 bg-white p-3 shadow-sm hover:border-slate-400 transition-colors">
+<div class="flex items-center justify-between pb-2 border-b border-slate-100 mb-2.5">
+<div class="flex items-center space-x-2">
+<div class="cursor-grab text-slate-300 hover:text-slate-500 py-0.5">
+<svg class="w-3.5 h-3.5" fill="currentColor" viewbox="0 0 24 24">
+<circle cx="9" cy="6" r="1.5"></circle>
+<circle cx="15" cy="6" r="1.5"></circle>
+<circle cx="9" cy="12" r="1.5"></circle>
+<circle cx="15" cy="12" r="1.5"></circle>
+<circle cx="9" cy="18" r="1.5"></circle>
+<circle cx="15" cy="18" r="1.5"></circle>
+</svg>
+</div>
+<div class="inline-block px-2 py-0.5 text-[10px] font-mono bg-[#e8f0fe] text-[#1967d2] border border-[#c3ecf6] font-bold">noul</div>
+<span class="text-xs font-sans text-[#1e1e1e] font-semibold">Evaluate boolean truth</span>
+</div>
+<div class="flex items-center space-x-1">
+<span class="text-[10px] font-mono text-slate-400">output: bool [0..1]</span>
+<button class="text-slate-300 hover:text-[#ea4335] p-0.5 ml-2 transition-colors">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
+</button>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex items-center text-xs font-sans">
+<span class="w-14 text-slate-400 text-[11px] font-mono shrink-0">question</span>
+<div class="flex-1 flex items-center border border-slate-200 bg-[#f8f9fa] px-2 py-1">
+<input class="bg-transparent border-0 p-0 text-xs font-sans text-[#1e1e1e] w-full focus:ring-0 focus:outline-none" type="text" value="Is the provided food item considered a sandwich?"/>
+</div>
+</div>
+<div class="flex items-center text-xs font-sans">
+<span class="w-14 text-slate-400 text-[11px] font-mono shrink-0">subject</span>
+<div class="inline-flex items-center bg-[#e8f0fe] border border-[#c3ecf6] px-2 py-0.5 text-xs font-mono text-[#1967d2]">
+<span class="text-[#4285f4] mr-1">$state.</span>example_state
+</div>
+</div>
+</div>
+</div>
+<!-- Question Block 2: CHOICE (Multiple Choice Selection) -->
+<div class="scratch-block border-l-4 border-l-[#fbbc04] border-t border-r border-b border-slate-300 bg-white p-3 shadow-sm hover:border-slate-400 transition-colors">
+<div class="flex items-center justify-between pb-2 border-b border-slate-100 mb-2.5">
+<div class="flex items-center space-x-2">
+<div class="cursor-grab text-slate-300 hover:text-slate-500 py-0.5">
+<svg class="w-3.5 h-3.5" fill="currentColor" viewbox="0 0 24 24">
+<circle cx="9" cy="6" r="1.5"></circle>
+<circle cx="15" cy="6" r="1.5"></circle>
+<circle cx="9" cy="12" r="1.5"></circle>
+<circle cx="15" cy="12" r="1.5"></circle>
+<circle cx="9" cy="18" r="1.5"></circle>
+<circle cx="15" cy="18" r="1.5"></circle>
+</svg>
+</div>
+<div class="inline-block px-2 py-0.5 text-[10px] font-mono bg-[#fef7e0] text-[#b06000] border border-[#ffe7a5] font-bold">choice</div>
+<span class="text-xs font-sans text-[#1e1e1e] font-semibold">Pick from list</span>
+</div>
+<div class="flex items-center space-x-1">
+<span class="text-[10px] font-mono text-slate-400">output: string</span>
+<button class="text-slate-300 hover:text-[#ea4335] p-0.5 ml-2 transition-colors">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
+</button>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex items-center text-xs font-sans">
+<span class="w-14 text-slate-400 text-[11px] font-mono shrink-0">question</span>
+<div class="flex-1 flex items-center border border-slate-200 bg-[#f8f9fa] px-2 py-1">
+<input class="bg-transparent border-0 p-0 text-xs font-sans text-[#1e1e1e] w-full focus:ring-0 focus:outline-none" type="text" value="What color category best describes 'object'?"/>
+</div>
+</div>
+<div class="flex items-start text-xs font-sans">
+<span class="w-14 text-slate-400 text-[11px] font-mono shrink-0 pt-1">options</span>
+<div class="flex-1 space-y-1.5">
+<div class="flex items-center space-x-1">
+<span class="text-[10px] font-mono text-slate-400 w-4">1.</span>
+<input class="flex-1 border border-slate-200 bg-white px-2 py-0.5 text-xs font-mono text-[#1e1e1e]" type="text" value="Red / Warm"/>
+<button class="text-slate-300 hover:text-[#ea4335] px-1">×</button>
+</div>
+<div class="flex items-center space-x-1">
+<span class="text-[10px] font-mono text-slate-400 w-4">2.</span>
+<input class="flex-1 border border-slate-200 bg-white px-2 py-0.5 text-xs font-mono text-[#1e1e1e]" type="text" value="Blue / Cool"/>
+<button class="text-slate-300 hover:text-[#ea4335] px-1">×</button>
+</div>
+<div class="flex items-center space-x-1">
+<span class="text-[10px] font-mono text-slate-400 w-4">3.</span>
+<input class="flex-1 border border-slate-200 bg-white px-2 py-0.5 text-xs font-mono text-[#1e1e1e]" type="text" value="Neutral / Monochrome"/>
+<button class="text-slate-300 hover:text-[#ea4335] px-1">×</button>
+</div>
+<button class="text-[10px] font-sans text-[#b06000] hover:text-[#ea4335] font-semibold pt-0.5 flex items-center space-x-0.5">
+<span>+ Add Option</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Question Block 3: SCORE (Grade with Rubric) -->
+<div class="scratch-block border-l-4 border-l-[#34a853] border-t border-r border-b border-slate-300 bg-white p-3 shadow-sm hover:border-slate-400 transition-colors">
+<div class="flex items-center justify-between pb-2 border-b border-slate-100 mb-2.5">
+<div class="flex items-center space-x-2">
+<div class="cursor-grab text-slate-300 hover:text-slate-500 py-0.5">
+<svg class="w-3.5 h-3.5" fill="currentColor" viewbox="0 0 24 24">
+<circle cx="9" cy="6" r="1.5"></circle>
+<circle cx="15" cy="6" r="1.5"></circle>
+<circle cx="9" cy="12" r="1.5"></circle>
+<circle cx="15" cy="12" r="1.5"></circle>
+<circle cx="9" cy="18" r="1.5"></circle>
+<circle cx="15" cy="18" r="1.5"></circle>
+</svg>
+</div>
+<div class="inline-block px-2 py-0.5 text-[10px] font-mono bg-[#e6f4ea] text-[#137333] border border-[#ccf6c5] font-bold">score</div>
+<span class="text-xs font-sans text-[#1e1e1e] font-semibold">Grade with a rubric</span>
+</div>
+<div class="flex items-center space-x-1">
+<span class="text-[10px] font-mono text-slate-400">output: float [0..10]</span>
+<button class="text-slate-300 hover:text-[#ea4335] p-0.5 ml-2 transition-colors">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
+</button>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex items-center text-xs font-sans">
+<span class="w-14 text-slate-400 text-[11px] font-mono shrink-0">rubric</span>
+<div class="flex-1 flex items-center border border-slate-200 bg-[#f8f9fa] px-2 py-1">
+<input class="bg-transparent border-0 p-0 text-xs font-sans text-[#1e1e1e] w-full focus:ring-0 focus:outline-none" type="text" value="How much did `subject` contribute to overall coherence?"/>
+</div>
+</div>
+<div class="flex items-center space-x-3 text-xs font-mono pl-14">
+<div class="flex items-center space-x-1">
+<span class="text-[10px] text-slate-500 font-sans">min:</span>
+<input class="w-12 border border-slate-200 bg-white px-1.5 py-0.5 text-xs text-[#1e1e1e]" type="number" value="1"/>
+</div>
+<div class="flex items-center space-x-1">
+<span class="text-[10px] text-slate-500 font-sans">max:</span>
+<input class="w-12 border border-slate-200 bg-white px-1.5 py-0.5 text-xs text-[#1e1e1e]" type="number" value="10"/>
+</div>
+<div class="flex items-center space-x-1">
+<span class="text-[10px] text-slate-500 font-sans">step:</span>
+<input class="w-12 border border-slate-200 bg-white px-1.5 py-0.5 text-xs text-[#1e1e1e]" type="number" value="1"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Add Question Block Palette -->
+<div class="pt-2">
+<div class="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1.5">Add Output Block</div>
+<div class="grid grid-cols-4 gap-2"><button class="p-2 bg-[#f8fafd] border border-[#c3ecf6] hover:border-[#4285f4] hover:bg-[#e8f0fe] text-left transition-colors" type="button">
+<div class="text-[10px] font-mono font-bold text-[#1967d2]">+ noul</div>
+<div class="text-[10px] text-slate-600 font-sans truncate">Boolean condition</div>
+</button>
+<button class="p-2 bg-[#fefdf8] border border-[#ffe7a5] hover:border-[#fbbc04] hover:bg-[#fef7e0] text-left transition-colors" type="button">
+<div class="text-[10px] font-mono font-bold text-[#b06000]">+ choice</div>
+<div class="text-[10px] text-slate-600 font-sans truncate">Multiple choice</div>
+</button>
+<button class="p-2 bg-[#f8fdf9] border border-[#ccf6c5] hover:border-[#34a853] hover:bg-[#e6f4ea] text-left transition-colors" type="button">
+<div class="text-[10px] font-mono font-bold text-[#137333]">+ score</div>
+<div class="text-[10px] text-slate-600 font-sans truncate">Rubric scoring</div>
+</button>
+<button class="p-2 bg-[#fdf9f9] border border-[#f8d8d8] hover:border-[#ea4335] hover:bg-[#fce8e6] text-left transition-colors" type="button">
+<div class="text-[10px] font-mono font-bold text-[#c5221f]">+ box</div>
+<div class="text-[10px] text-[#c5221f] font-sans truncate">Image bounding box</div>
+</button></div>
+</div>
+</div>
+</div>
+<!-- Bottom Panel Bar -->
+<div class="border-t border-slate-200 px-3 py-2 bg-white flex items-center justify-between text-xs text-slate-500">
+<div class="flex items-center space-x-2">
+<svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" x2="12" y1="3" y2="15"></line></svg>
+<span class="text-slate-400 font-sans">Click to upload assets</span>
+</div>
+</div>
+<div class="border-t border-slate-200 px-3 py-2 bg-white flex items-center justify-between shrink-0">
+<div class="flex items-center space-x-2">
+<button class="text-slate-400 hover:text-slate-600 text-sm font-light">+</button>
+<button class="px-2 py-0.5 text-xs font-mono text-slate-700 bg-slate-100 border border-slate-200">jev-decision-1</button>
+</div>
+<div>
+<button class="px-3 py-1 text-xs font-sans text-white bg-[#4285f4] hover:bg-[#1a73e8] border border-[#1a73e8] font-semibold transition-colors shadow-sm" type="button">Run request <span class="text-[10px] font-mono text-white/80 ml-1">Ctrl+↵</span></button>
+</div>
+</div>
+</section>
+<!-- BEGIN: Right Inspection / Documentation Pane -->
+<section class="w-1/2 flex flex-col bg-white overflow-y-auto" data-purpose="response-inspector-pane">
+<div class="p-6 md:p-8 space-y-6">
+<div class="flex items-start justify-between">
+<div class="space-y-1">
+<div class="text-[11px] font-mono tracking-wider text-slate-400 uppercase">OCT 14, 2026 • V1.14 RELEASE</div>
+<h1 class="text-3xl font-bold tracking-tight text-[#1e1e1e]">Learn to image model</h1>
+</div>
+<button class="text-slate-400 hover:text-slate-700 p-1">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
+</button>
+</div>
+<div class="stipple-banner border border-[#c3ecf6] p-4 relative overflow-hidden">
+<div class="max-w-[70%] space-y-1 relative z-10">
+<div class="text-xs font-bold text-[#1e1e1e]">Image models are only dreamer-ready</div>
+<p class="text-xs text-slate-600">Jev is still learning to meet our prod-ready standards, but it's still pretty sick, so check it out</p>
+<div class="pt-1">
+<a class="text-xs text-[#1a73e8] hover:text-[#174ea6] font-medium underline flex items-center gap-1" href="#">
+<span>Enable images in the API</span>
+<svg class="w-3 h-3 inline" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"></path></svg>
+</a>
+</div>
+</div>
+<div class="absolute right-3 top-1/2 -translate-y-1/2 opacity-70 pointer-events-none">
+<svg fill="none" height="80" viewbox="0 0 110 80" width="110" xmlns="http://www.w3.org/2000/svg">
+<circle cx="75" cy="40" fill="#c3ecf6" fill-opacity="0.6" r="28"></circle>
+<circle cx="90" cy="35" fill="#ffd427" fill-opacity="0.5" r="16"></circle>
+</svg>
+</div>
+</div>
+<div class="space-y-3 pt-2">
+<div class="text-[11px] font-mono tracking-wider text-slate-400 uppercase">IMAGE MODEL CAPABILITIES</div>
+<div class="grid grid-cols-2 gap-4"><div class="border border-slate-200 p-4 bg-white relative space-y-3 hover:border-[#4285f4] transition-colors border-t-2 border-t-[#4285f4]">
+<div class="absolute top-2 right-2 px-2 py-0.5 text-[10px] font-sans bg-[#e8f0fe] text-[#1967d2] font-semibold border border-[#c3ecf6]">Image assets</div>
+<div class="h-28 flex items-center justify-center text-[#4285f4]/70">
+<svg class="w-14 h-14" fill="none" stroke="currentColor" stroke-width="1.4" viewbox="0 0 24 24">
+<rect height="14" rx="1" width="14" x="3" y="3"></rect>
+<circle cx="7.5" cy="7.5" r="1.5"></circle>
+<path d="M17 13l-5-5-6 6"></path>
+<rect height="14" opacity="0.5" rx="1" width="14" x="7" y="7"></rect>
+</svg>
+</div>
+<div class="space-y-1">
+<div class="text-xs font-bold text-[#1e1e1e]">Add images everywhere</div>
+<div class="text-xs text-slate-500">Jev reacts from a meme keyboard to various images</div>
+</div>
+</div>
+<div class="border border-slate-200 p-4 bg-white relative space-y-3 hover:border-[#34a853] transition-colors border-t-2 border-t-[#34a853]">
+<div class="absolute top-2 right-2 px-2 py-0.5 text-[10px] font-sans bg-[#e6f4ea] text-[#137333] font-semibold border border-[#ccf6c5]">Box type</div>
+<div class="h-28 flex items-center justify-center text-[#34a853]/70">
+<svg class="w-14 h-14" fill="none" stroke="currentColor" stroke-width="1.4" viewbox="0 0 24 24">
+<path d="M4 8V4h4m8 0h4v4m0 8v4h-4M8 20H4v-4"></path>
+<rect height="8" stroke-dasharray="2 2" width="8" x="8" y="8"></rect>
+</svg>
+</div>
+<div class="space-y-1">
+<div class="text-xs font-bold text-[#1e1e1e]">A new type of output</div>
+<div class="text-xs text-slate-500">Jev answers questions about items on the shelf</div>
+</div>
+</div></div>
+</div>
+<div class="space-y-3 pt-3">
+<div class="text-[11px] font-mono tracking-wider text-slate-400 uppercase">MORE EXAMPLES</div>
+<div class="divide-y divide-slate-100 border-t border-slate-100">
+<div class="py-2.5 flex items-center space-x-3 text-xs hover:bg-slate-50 px-1 cursor-pointer transition-colors">
+<span class="font-medium text-slate-900 w-36 shrink-0">Assess a claim</span>
+<span class="text-slate-500">Assess damage from a photo of a broken phone</span>
+</div>
+<div class="py-2.5 flex items-center space-x-3 text-xs hover:bg-slate-50 px-1 cursor-pointer transition-colors">
+<span class="font-medium text-slate-900 w-36 shrink-0">Learn a tarot card</span>
+<span class="text-slate-500">Contemplate the celestial sphere that orbits our earth</span>
+</div>
+<div class="py-2.5 flex items-center space-x-3 text-xs hover:bg-slate-50 px-1 cursor-pointer transition-colors">
+<span class="font-medium text-slate-900 w-36 shrink-0">Reddit potato story</span>
+<span class="text-slate-500">Rate the messiness of a situation using a visual scale</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- END: Right Inspection Pane -->
+</main>
+<!-- END: MainContentGrid -->
+<!-- BEGIN: InteractiveScripts -->
+<script data-purpose="ui-interactions">
+  document.addEventListener('DOMContentLoaded', () => {
+    // Interactive remove block functionality
+    const deleteButtons = document.querySelectorAll('.scratch-block button[title="Delete block"]');
+    deleteButtons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const block = e.target.closest('.scratch-block');
+        if (block) {
+          block.style.opacity = '0.3';
+          setTimeout(() => block.remove(), 150);
+        }
+      });
+    });
+
+    // Clear button functionality
+    const clearBtn = document.querySelector('[data-purpose="clear-button"]');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => {
+        document.querySelectorAll('input[type="text"]').forEach(input => {
+          input.value = '';
+        });
+      });
+    }
+  });
+</script>
+<!-- END: InteractiveScripts -->
+</body></html>

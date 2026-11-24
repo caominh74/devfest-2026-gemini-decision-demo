@@ -1,0 +1,123 @@
+@import "tailwindcss";
+
+:root {
+  --background: #fbfbfc;
+  --foreground: #1e1e1e;
+  --canvas: #f0f0f0;
+  --surface: #ffffff;
+  --ink: #1e1e1e;
+  --muted: #757575;
+
+  /* Google Developer Spectrum (DevPlayground Core) */
+  --gdg-blue: #4285f4;
+  --gdg-blue-halftone: #57caff;
+  --gdg-blue-pastel: #c3ecf6;
+  --gdg-blue-wash: #e8f0fe;
+
+  --gdg-green: #34a853;
+  --gdg-green-halftone: #5cdb6d;
+  --gdg-green-pastel: #ccf6c5;
+  --gdg-green-wash: #e6f4ea;
+
+  --gdg-yellow: #fbbc04;
+  --gdg-yellow-halftone: #ffd427;
+  --gdg-yellow-pastel: #ffe7a5;
+  --gdg-yellow-wash: #fef7e0;
+
+  --gdg-red: #ea4335;
+  --gdg-red-halftone: #ff7daf;
+  --gdg-red-pastel: #f8d8d8;
+  --gdg-red-wash: #fce8e6;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-panel: #ffffff;
+  --color-canvas: #fbfbfc;
+  --color-sidebar: #f8f9fa;
+  --color-border-subtle: #eaecf0;
+  --color-border-muted: #e2e5e9;
+  --color-gdg-blue: var(--gdg-blue);
+  --color-gdg-green: var(--gdg-green);
+  --color-gdg-yellow: var(--gdg-yellow);
+  --color-gdg-red: var(--gdg-red);
+  --font-sans: var(--font-plus-jakarta-sans), "Plus Jakarta Sans", -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), "JetBrains Mono", SFMono-Regular,
+    Menlo, Monaco, Consolas, monospace;
+}
+
+/* Universal sharp 0px corner radius (DevPlayground Core) */
+*,
+*::before,
+*::after {
+  border-radius: 0px !important;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
+}
+
+.code-editor {
+  tab-size: 2;
+}
+
+/* Scratch-like puzzle notch connectors */
+.scratch-block {
+  position: relative;
+}
+
+.scratch-block::before {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: 28px;
+  width: 14px;
+  height: 4px;
+  background: inherit;
+  border-top: 1px solid #cbd5e1;
+  border-left: 1px solid #cbd5e1;
+  border-right: 1px solid #cbd5e1;
+  z-index: 10;
+}
+
+.scratch-block::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 28px;
+  width: 14px;
+  height: 4px;
+  background: #ffffff;
+  border-bottom: 1px solid #cbd5e1;
+  border-left: 1px solid #cbd5e1;
+  border-right: 1px solid #cbd5e1;
+  z-index: 10;
+}
+
+.cursor-blink {
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.hard-shadow {
+  box-shadow: 3px 3px 0px 0px #1e1e1e;
+}
+
+.hard-shadow-sm {
+  box-shadow: 2px 2px 0px 0px #1e1e1e;
+}
