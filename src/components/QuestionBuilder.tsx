@@ -257,7 +257,7 @@ export function QuestionBuilder({
                     <span className="w-20 text-slate-400 text-xs font-mono shrink-0">
                       question
                     </span>
-                    <div className="flex-1 flex items-center border border-slate-200 bg-[#f8f9fa] px-2.5 py-1.5 focus-within:border-[#4285f4] focus-within:bg-white">
+                    <div className="flex-1 flex items-center border border-slate-300 bg-white px-2.5 py-1.5 hover:border-slate-400 focus-within:border-[#4285f4]">
                       <input
                         type="text"
                         value={q.instructions}
@@ -404,7 +404,7 @@ export function QuestionBuilder({
                     <span className="w-20 text-slate-400 text-xs font-mono shrink-0">
                       question
                     </span>
-                    <div className="flex-1 flex items-center border border-slate-200 bg-[#f8f9fa] px-2.5 py-1.5 focus-within:border-[#fbbc04] focus-within:bg-white">
+                    <div className="flex-1 flex items-center border border-slate-300 bg-white px-2.5 py-1.5 hover:border-slate-400 focus-within:border-[#fbbc04]">
                       <input
                         type="text"
                         value={q.instructions}
@@ -573,7 +573,7 @@ export function QuestionBuilder({
                   <span className="w-20 text-slate-400 text-xs font-mono shrink-0">
                     rubric
                   </span>
-                  <div className="flex-1 flex items-center border border-slate-200 bg-[#f8f9fa] px-2.5 py-1.5 focus-within:border-[#34a853] focus-within:bg-white">
+                  <div className="flex-1 flex items-center border border-slate-300 bg-white px-2.5 py-1.5 hover:border-slate-400 focus-within:border-[#34a853]">
                     <input
                       type="text"
                       value={q.instructions}

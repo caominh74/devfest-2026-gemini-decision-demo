@@ -7,6 +7,7 @@ import { StateBuilder } from "@/components/StateBuilder";
 import { QuestionBuilder } from "@/components/QuestionBuilder";
 import { ResponsePanel } from "@/components/ResponsePanel";
 import { generateTypeScriptCode } from "@/lib/codegen";
+import type { PlaygroundExample } from "@/lib/examples";
 import {
   serializeQuestionBlocks,
   serializeStateBlocksToInput,
@@ -220,6 +221,24 @@ export default function PlaygroundPage() {
     }
   };
 
+  const handleLoadExample = (example: PlaygroundExample) => {
+    setStateBlocks(example.stateBlocks.map((b) => ({ ...b })));
+    setQuestions(
+      example.questions.map((q) => {
+        if (q.type === "choice") {
+          return { ...q, options: q.options.map((o) => ({ ...o })) };
+        }
+        if (q.type === "score") {
+          return { ...q, levels: [...q.levels] };
+        }
+        return { ...q, criteria: q.criteria ? { ...q.criteria } : undefined };
+      })
+    );
+    setResponse(null);
+    setError(null);
+    setLastRunLabel(null);
+  };
+
   const handleClear = () => {
     setStateBlocks([
       {
@@ -390,6 +409,7 @@ export default function PlaygroundPage() {
           error={error}
           isRunning={isRunning}
           lastRunLabel={lastRunLabel}
+          onLoadExample={handleLoadExample}
         />
       </main>
     </div>

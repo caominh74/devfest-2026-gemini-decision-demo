@@ -121,3 +121,12 @@ body {
 .hard-shadow-sm {
   box-shadow: 2px 2px 0px 0px #1e1e1e;
 }
+
+/* Halftone stipple pattern for the welcome banner */
+.stipple-banner {
+  background-color: #f4f8fe;
+  background-image: radial-gradient(#a8c7fa 0.75px, transparent 0.75px),
+    radial-gradient(#c3ecf6 0.75px, #f8fbff 0.75px);
+  background-size: 10px 10px;
+  background-position: 0 0, 5px 5px;
+}

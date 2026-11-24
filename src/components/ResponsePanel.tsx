@@ -2,13 +2,18 @@
 
 import { useMemo, useState } from "react";
 import {
+  ArrowRight,
   ChevronDown,
   ChevronRight,
   Code2,
+  Image as ImageIcon,
+  Layers,
   Loader2,
   Table2,
+  X,
 } from "lucide-react";
 import { SdkCodePanel } from "./SdkCodePanel";
+import { PLAYGROUND_EXAMPLES, type PlaygroundExample } from "@/lib/examples";
 import { serializeQuestionBlocks } from "@/lib/serialize";
 import type {
   ChoiceAnswer,
@@ -28,6 +33,7 @@ interface ResponsePanelProps {
   error: string | null;
   isRunning: boolean;
   lastRunLabel: string | null;
+  onLoadExample: (example: PlaygroundExample) => void;
 }
 
 function pct(prob: number): string {
@@ -398,11 +404,13 @@ export function ResponsePanel({
   error,
   isRunning,
   lastRunLabel,
+  onLoadExample,
 }: ResponsePanelProps) {
   const [activeTab, setActiveTab] = useState<"structured" | "code">(
     "structured"
   );
   const [expandedKeys, setExpandedKeys] = useState<Record<string, boolean>>({});
+  const [welcomeDismissed, setWelcomeDismissed] = useState(false);
 
   const serializedQuestions = useMemo(
     () => serializeQuestionBlocks(questions),
@@ -513,34 +521,177 @@ export function ResponsePanel({
         ) : (
           <>
             {!response && !isRunning ? (
-              <div className="border border-slate-300 bg-white p-6 space-y-3">
-                <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
-                  <span className="text-xs font-mono uppercase tracking-wider text-slate-400">
-                    gemini-decision-1 · v1beta
-                  </span>
-                  <span className="text-xs font-mono px-2 py-0.5 bg-[#e6f4ea] text-[#137333] border border-[#ccf6c5]">
-                    0 output tokens
-                  </span>
+              !welcomeDismissed ? (
+                <div className="bg-white border border-slate-200 p-6 md:p-7 space-y-6">
+                  {/* Top Title + Dismiss */}
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-1">
+                      <div className="text-xs font-mono tracking-wider text-slate-400 uppercase">
+                        ROAD TO DEVFEST 2026 · V1BETA
+                      </div>
+                      <h1 className="text-3xl font-bold tracking-tight text-[#1e1e1e]">
+                        Gemini Decision 1
+                      </h1>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setWelcomeDismissed(true)}
+                      className="text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+                      title="Dismiss overview"
+                      aria-label="Dismiss overview"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Stipple Banner Callout */}
+                  <div className="stipple-banner border border-[#c3ecf6] p-4 relative overflow-hidden">
+                    <div className="max-w-[78%] space-y-1.5 relative z-10">
+                      <div className="text-sm font-bold text-[#1e1e1e]">
+                        Calibrated probabilities with 0 output tokens
+                      </div>
+                      <p className="text-xs text-slate-600 leading-relaxed">
+                        Send a shared <span className="font-mono">State</span>{" "}
+                        prefix once and evaluate up to 1,000 parallel{" "}
+                        <span className="font-mono">noul</span>,{" "}
+                        <span className="font-mono">choice</span>, and{" "}
+                        <span className="font-mono">score</span> questions in a
+                        single low-latency call.
+                      </p>
+                      <div className="pt-1">
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab("code")}
+                          className="text-xs text-[#1a73e8] hover:text-[#174ea6] font-semibold underline inline-flex items-center gap-1 cursor-pointer"
+                        >
+                          <span>Inspect generated SDK code</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                    <div
+                      className="absolute right-3 top-1/2 -translate-y-1/2 opacity-75 pointer-events-none"
+                      aria-hidden="true"
+                    >
+                      <svg
+                        fill="none"
+                        height="80"
+                        viewBox="0 0 110 80"
+                        width="110"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <circle
+                          cx="75"
+                          cy="40"
+                          fill="#c3ecf6"
+                          fillOpacity="0.7"
+                          r="28"
+                        />
+                        <circle
+                          cx="90"
+                          cy="35"
+                          fill="#ffd427"
+                          fillOpacity="0.6"
+                          r="16"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+
+                  {/* 2-Column Capabilities Grid */}
+                  <div className="space-y-3 pt-1">
+                    <div className="text-xs font-mono tracking-wider text-slate-400 uppercase">
+                      DECISION MODEL CAPABILITIES
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="border border-slate-200 p-4 bg-white relative space-y-3 hover:border-[#4285f4] transition-colors border-t-2 border-t-[#4285f4]">
+                        <div className="absolute top-2.5 right-2.5 px-2 py-0.5 text-xs font-sans bg-[#e8f0fe] text-[#1967d2] font-semibold border border-[#c3ecf6]">
+                          Multimodal state
+                        </div>
+                        <div className="h-24 flex items-center justify-center text-[#4285f4]/75">
+                          <ImageIcon className="w-12 h-12" strokeWidth={1.4} />
+                        </div>
+                        <div className="space-y-1">
+                          <div className="text-sm font-bold text-[#1e1e1e]">
+                            Shared JSON, images &amp; PDFs
+                          </div>
+                          <div className="text-xs text-slate-500">
+                            Billed once as a shared prefix across every question
+                            in the batch
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="border border-slate-200 p-4 bg-white relative space-y-3 hover:border-[#34a853] transition-colors border-t-2 border-t-[#34a853]">
+                        <div className="absolute top-2.5 right-2.5 px-2 py-0.5 text-xs font-sans bg-[#e6f4ea] text-[#137333] font-semibold border border-[#ccf6c5]">
+                          3 output types
+                        </div>
+                        <div className="h-24 flex items-center justify-center text-[#34a853]/75">
+                          <Layers className="w-12 h-12" strokeWidth={1.4} />
+                        </div>
+                        <div className="space-y-1">
+                          <div className="text-sm font-bold text-[#1e1e1e]">
+                            noul · choice · score
+                          </div>
+                          <div className="text-xs text-slate-500">
+                            Isolated parallel scoring with calibrated confidence
+                            distributions
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Clickable Examples */}
+                  <div className="space-y-3 pt-2">
+                    <div className="text-xs font-mono tracking-wider text-slate-400 uppercase">
+                      MORE EXAMPLES · CLICK TO LOAD
+                    </div>
+                    <div className="divide-y divide-slate-100 border-t border-slate-100">
+                      {PLAYGROUND_EXAMPLES.map((example) => (
+                        <button
+                          key={example.id}
+                          type="button"
+                          onClick={() => onLoadExample(example)}
+                          className="w-full py-3 flex items-center space-x-4 text-left text-sm hover:bg-[#f8fafd] px-2 cursor-pointer transition-colors group"
+                        >
+                          <span className="font-semibold text-[#1e1e1e] group-hover:text-[#1967d2] w-44 shrink-0">
+                            {example.title}
+                          </span>
+                          <span className="text-slate-500 text-xs flex-1">
+                            {example.description}
+                          </span>
+                          <ArrowRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-[#4285f4] shrink-0" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <h2 className="text-base font-bold text-[#1e1e1e]">
-                    Parallel Calibrated Decision Inspector
-                  </h2>
-                  <p className="text-sm text-slate-600 leading-relaxed">
-                    Edit any <span className="font-mono">SET state.</span>{" "}
-                    variable, attach an image/PDF, and define{" "}
-                    <span className="font-mono text-[#1967d2]">noul</span>,{" "}
-                    <span className="font-mono text-[#b06000]">choice</span>, or{" "}
-                    <span className="font-mono text-[#137333]">score</span>{" "}
-                    questions on the left. Press{" "}
-                    <span className="font-mono px-1.5 py-0.5 bg-slate-100 border border-slate-300 text-xs">
+              ) : (
+                <div className="border border-slate-300 bg-white p-6 space-y-2 text-center">
+                  <div className="text-sm font-semibold text-[#1e1e1e]">
+                    Ready to evaluate with{" "}
+                    <span className="font-mono text-[#1967d2]">
+                      gemini-decision-1
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    Press{" "}
+                    <span className="font-mono px-1.5 py-0.5 bg-slate-100 border border-slate-300">
                       Ctrl+↵
                     </span>{" "}
-                    to evaluate all questions in parallel against the shared
-                    state prefix.
+                    to run your State and Questions blocks, or{" "}
+                    <button
+                      type="button"
+                      onClick={() => setWelcomeDismissed(false)}
+                      className="text-[#1a73e8] underline cursor-pointer"
+                    >
+                      show examples
+                    </button>
+                    .
                   </p>
                 </div>
-              </div>
+              )
             ) : (
               <div className="border border-slate-300 bg-white overflow-hidden">
                 {/* 3-Column Table Header */}
