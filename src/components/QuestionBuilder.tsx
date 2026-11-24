@@ -100,7 +100,7 @@ export function QuestionBuilder({
   return (
     <section aria-label="Questions builder">
       {/* Sticky Questions Header */}
-      <div className="px-4 py-2.5 border-b border-slate-200 flex items-center justify-between bg-white sticky top-0 z-10">
+      <div className="px-3 sm:px-4 py-2.5 border-b border-slate-200 flex items-center justify-between bg-white sticky top-0 z-10">
         <div className="flex items-center space-x-2">
           <span className="text-sm font-semibold text-slate-800 font-sans tracking-wide">
             Questions
@@ -121,7 +121,7 @@ export function QuestionBuilder({
       </div>
 
       {/* Modular Scratch-style Question Blocks */}
-      <div className="p-3.5 bg-white space-y-3.5">
+      <div className="p-3 sm:p-3.5 bg-white space-y-3.5">
         {questions.length === 0 && (
           <div className="border border-dashed border-slate-300 bg-[#fafbfc] px-4 py-6 text-center text-sm text-slate-500">
             No output questions yet. Pick{" "}
@@ -253,8 +253,8 @@ export function QuestionBuilder({
                 </div>
 
                 <div className="space-y-2.5">
-                  <div className="flex items-center text-sm font-sans">
-                    <span className="w-20 text-slate-400 text-xs font-mono shrink-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-0 text-sm font-sans">
+                    <span className="sm:w-20 text-slate-400 text-xs font-mono shrink-0">
                       question
                     </span>
                     <div className="flex-1 flex items-center border border-slate-300 bg-white px-2.5 py-1.5 hover:border-slate-400 focus-within:border-[#4285f4]">
@@ -271,8 +271,8 @@ export function QuestionBuilder({
                   </div>
 
                   {/* Optional criteria: true_description / false_description */}
-                  <div className="flex items-start text-sm font-sans">
-                    <span className="w-20 text-slate-400 text-xs font-mono shrink-0 pt-1.5">
+                  <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-0 text-sm font-sans">
+                    <span className="sm:w-20 text-slate-400 text-xs font-mono shrink-0 sm:pt-1.5">
                       criteria
                     </span>
                     <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -400,8 +400,8 @@ export function QuestionBuilder({
                 </div>
 
                 <div className="space-y-2.5">
-                  <div className="flex items-center text-sm font-sans">
-                    <span className="w-20 text-slate-400 text-xs font-mono shrink-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-0 text-sm font-sans">
+                    <span className="sm:w-20 text-slate-400 text-xs font-mono shrink-0">
                       question
                     </span>
                     <div className="flex-1 flex items-center border border-slate-300 bg-white px-2.5 py-1.5 hover:border-slate-400 focus-within:border-[#fbbc04]">
@@ -417,29 +417,45 @@ export function QuestionBuilder({
                     </div>
                   </div>
 
-                  <div className="flex items-start text-sm font-sans">
-                    <span className="w-20 text-slate-400 text-xs font-mono shrink-0 pt-1.5">
+                  <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-0 text-sm font-sans">
+                    <span className="sm:w-20 text-slate-400 text-xs font-mono shrink-0 sm:pt-1.5">
                       options
                     </span>
                     <div className="flex-1 space-y-2">
                       {q.options.map((opt, optIdx) => (
                         <div
                           key={opt.id}
-                          className="flex items-center space-x-2"
+                          className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2 border sm:border-0 border-slate-100 bg-slate-50/50 sm:bg-transparent p-2 sm:p-0"
                         >
-                          <span className="text-xs font-mono text-slate-400 w-5 shrink-0">
-                            {optIdx + 1}.
-                          </span>
-                          <input
-                            type="text"
-                            value={opt.key}
-                            onChange={(e) =>
-                              updateOption(opt.id, { key: e.target.value })
-                            }
-                            placeholder="option_id"
-                            aria-label={`Option ${optIdx + 1} key`}
-                            className="w-36 sm:w-40 border border-slate-200 bg-[#f8f9fa] px-2.5 py-1 text-sm font-mono text-[#1e1e1e] focus:outline-none focus:border-[#fbbc04] focus:bg-white shrink-0"
-                          />
+                          <div className="flex items-center gap-2 sm:contents">
+                            <span className="text-xs font-mono text-slate-400 w-5 shrink-0">
+                              {optIdx + 1}.
+                            </span>
+                            <input
+                              type="text"
+                              value={opt.key}
+                              onChange={(e) =>
+                                updateOption(opt.id, { key: e.target.value })
+                              }
+                              placeholder="option_id"
+                              aria-label={`Option ${optIdx + 1} key`}
+                              className="flex-1 sm:flex-none sm:w-40 min-w-0 border border-slate-200 bg-[#f8f9fa] px-2.5 py-1 text-sm font-mono text-[#1e1e1e] focus:outline-none focus:border-[#fbbc04] focus:bg-white shrink-0"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeOption(opt.id)}
+                              disabled={q.options.length <= 2}
+                              className="sm:order-last text-slate-400 hover:text-[#ea4335] disabled:opacity-30 px-1.5 py-0.5 text-base cursor-pointer disabled:cursor-default shrink-0"
+                              title={
+                                q.options.length <= 2
+                                  ? "At least 2 options required"
+                                  : "Remove option"
+                              }
+                              aria-label="Remove option"
+                            >
+                              ×
+                            </button>
+                          </div>
                           <input
                             type="text"
                             value={opt.description}
@@ -450,22 +466,8 @@ export function QuestionBuilder({
                             }
                             placeholder="Criteria description (optional)"
                             aria-label={`Option ${optIdx + 1} description`}
-                            className="flex-1 min-w-0 border border-slate-200 bg-white px-2.5 py-1 text-sm font-sans text-[#1e1e1e] focus:outline-none focus:border-[#fbbc04]"
+                            className="w-full sm:flex-1 min-w-0 border border-slate-200 bg-white px-2.5 py-1 text-sm font-sans text-[#1e1e1e] focus:outline-none focus:border-[#fbbc04]"
                           />
-                          <button
-                            type="button"
-                            onClick={() => removeOption(opt.id)}
-                            disabled={q.options.length <= 2}
-                            className="text-slate-400 hover:text-[#ea4335] disabled:opacity-30 px-1 text-base cursor-pointer disabled:cursor-default"
-                            title={
-                              q.options.length <= 2
-                                ? "At least 2 options required"
-                                : "Remove option"
-                            }
-                            aria-label="Remove option"
-                          >
-                            ×
-                          </button>
                         </div>
                       ))}
 
@@ -569,8 +571,8 @@ export function QuestionBuilder({
               </div>
 
               <div className="space-y-2.5">
-                <div className="flex items-center text-sm font-sans">
-                  <span className="w-20 text-slate-400 text-xs font-mono shrink-0">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-0 text-sm font-sans">
+                  <span className="sm:w-20 text-slate-400 text-xs font-mono shrink-0">
                     rubric
                   </span>
                   <div className="flex-1 flex items-center border border-slate-300 bg-white px-2.5 py-1.5 hover:border-slate-400 focus-within:border-[#34a853]">
@@ -587,8 +589,8 @@ export function QuestionBuilder({
                 </div>
 
                 {/* Ordered 0-indexed rubric level text inputs */}
-                <div className="flex items-start text-sm font-sans">
-                  <span className="w-20 text-slate-400 text-xs font-mono shrink-0 pt-1.5">
+                <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-0 text-sm font-sans">
+                  <span className="sm:w-20 text-slate-400 text-xs font-mono shrink-0 sm:pt-1.5">
                     levels
                   </span>
                   <div className="flex-1 space-y-2">
@@ -644,16 +646,16 @@ export function QuestionBuilder({
           <div className="text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">
             Add Output Block
           </div>
-          <div className="grid grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-3 gap-1.5 sm:gap-2.5">
             <button
               type="button"
               onClick={() => onAddQuestion("noul")}
-              className="p-2.5 bg-[#f8fafd] border border-[#c3ecf6] hover:border-[#4285f4] hover:bg-[#e8f0fe] text-left transition-colors cursor-pointer"
+              className="touch-target p-2 sm:p-2.5 bg-[#f8fafd] border border-[#c3ecf6] hover:border-[#4285f4] hover:bg-[#e8f0fe] text-left transition-colors cursor-pointer"
             >
               <div className="text-xs font-mono font-bold text-[#1967d2]">
                 + noul
               </div>
-              <div className="text-xs text-slate-600 font-sans truncate">
+              <div className="text-[11px] sm:text-xs text-slate-600 font-sans leading-tight mt-0.5">
                 Boolean condition
               </div>
             </button>
@@ -661,12 +663,12 @@ export function QuestionBuilder({
             <button
               type="button"
               onClick={() => onAddQuestion("choice")}
-              className="p-2.5 bg-[#fefdf8] border border-[#ffe7a5] hover:border-[#fbbc04] hover:bg-[#fef7e0] text-left transition-colors cursor-pointer"
+              className="touch-target p-2 sm:p-2.5 bg-[#fefdf8] border border-[#ffe7a5] hover:border-[#fbbc04] hover:bg-[#fef7e0] text-left transition-colors cursor-pointer"
             >
               <div className="text-xs font-mono font-bold text-[#b06000]">
                 + choice
               </div>
-              <div className="text-xs text-slate-600 font-sans truncate">
+              <div className="text-[11px] sm:text-xs text-slate-600 font-sans leading-tight mt-0.5">
                 Multiple choice
               </div>
             </button>
@@ -674,12 +676,12 @@ export function QuestionBuilder({
             <button
               type="button"
               onClick={() => onAddQuestion("score")}
-              className="p-2.5 bg-[#f8fdf9] border border-[#ccf6c5] hover:border-[#34a853] hover:bg-[#e6f4ea] text-left transition-colors cursor-pointer"
+              className="touch-target p-2 sm:p-2.5 bg-[#f8fdf9] border border-[#ccf6c5] hover:border-[#34a853] hover:bg-[#e6f4ea] text-left transition-colors cursor-pointer"
             >
               <div className="text-xs font-mono font-bold text-[#137333]">
                 + score
               </div>
-              <div className="text-xs text-slate-600 font-sans truncate">
+              <div className="text-[11px] sm:text-xs text-slate-600 font-sans leading-tight mt-0.5">
                 Rubric scoring
               </div>
             </button>

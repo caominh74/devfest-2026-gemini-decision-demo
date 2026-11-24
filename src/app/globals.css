@@ -61,6 +61,24 @@ body {
   font-family: var(--font-sans);
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   -webkit-font-smoothing: antialiased;
+  overflow-wrap: break-word;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+@media (pointer: coarse) {
+  .touch-target {
+    min-block-size: 40px;
+    min-inline-size: 40px;
+  }
 }
 
 .code-editor {

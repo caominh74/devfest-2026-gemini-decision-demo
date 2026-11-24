@@ -100,6 +100,9 @@ export default function PlaygroundPage() {
   const [isRunning, setIsRunning] = useState(false);
   const [lastRunLabel, setLastRunLabel] = useState<string | null>(null);
   const [copiedSdk, setCopiedSdk] = useState(false);
+  const [mobilePane, setMobilePane] = useState<"builder" | "response">(
+    "builder"
+  );
 
   const quickUploadRef = useRef<HTMLInputElement>(null);
 
@@ -237,6 +240,7 @@ export default function PlaygroundPage() {
     setResponse(null);
     setError(null);
     setLastRunLabel(null);
+    setMobilePane("builder");
   };
 
   const handleClear = () => {
@@ -253,6 +257,7 @@ export default function PlaygroundPage() {
     setResponse(null);
     setError(null);
     setLastRunLabel(null);
+    setMobilePane("builder");
   };
 
   const handleCopySdk = async () => {
@@ -277,6 +282,7 @@ export default function PlaygroundPage() {
 
     setIsRunning(true);
     setError(null);
+    setMobilePane("response");
 
     try {
       const res = await fetch("/api/decision", {
@@ -319,8 +325,10 @@ export default function PlaygroundPage() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [handleRunRequest]);
 
+  const answerCount = response ? Object.keys(response.answers).length : 0;
+
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-[#fbfbfc] text-[#1e1e1e]">
+    <div className="h-dvh flex flex-col overflow-hidden bg-[#fbfbfc] text-[#1e1e1e]">
       <TopBar
         mode={mode}
         onModeChange={setMode}
@@ -329,13 +337,58 @@ export default function PlaygroundPage() {
         copiedSdk={copiedSdk}
       />
 
-      <main className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+      {/* Mobile Pane Switcher (< lg) */}
+      <nav
+        aria-label="Workspace view"
+        className="lg:hidden grid grid-cols-2 border-b border-slate-200 bg-white shrink-0"
+      >
+        <button
+          type="button"
+          onClick={() => setMobilePane("builder")}
+          aria-pressed={mobilePane === "builder"}
+          className={`touch-target py-2.5 px-3 text-xs font-mono font-semibold flex items-center justify-center gap-2 border-b-2 transition-colors cursor-pointer ${
+            mobilePane === "builder"
+              ? "border-[#4285f4] text-[#1967d2] bg-[#f8fafd]"
+              : "border-transparent text-slate-500 hover:text-slate-800"
+          }`}
+        >
+          <span>Builder</span>
+          <span className="px-1.5 py-0.5 text-[11px] bg-slate-100 text-slate-600 border border-slate-200">
+            {questions.length}
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setMobilePane("response")}
+          aria-pressed={mobilePane === "response"}
+          className={`touch-target py-2.5 px-3 text-xs font-mono font-semibold flex items-center justify-center gap-2 border-b-2 border-l border-l-slate-200 transition-colors cursor-pointer ${
+            mobilePane === "response"
+              ? "border-[#4285f4] text-[#1967d2] bg-[#f8fafd]"
+              : "border-transparent text-slate-500 hover:text-slate-800"
+          }`}
+        >
+          <span>Response</span>
+          {isRunning ? (
+            <Loader2 className="w-3.5 h-3.5 animate-spin text-[#4285f4]" />
+          ) : error ? (
+            <span className="w-2 h-2 bg-[#ea4335] inline-block" aria-label="Error" />
+          ) : answerCount > 0 ? (
+            <span className="px-1.5 py-0.5 text-[11px] bg-[#e6f4ea] text-[#137333] border border-[#ccf6c5]">
+              {answerCount}
+            </span>
+          ) : null}
+        </button>
+      </nav>
+
+      <main className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0">
         {/* Left Pane: Input Builder (State + Questions + Pinned Bottom Bar) */}
         <section
-          className="w-full lg:w-1/2 flex flex-col border-b lg:border-b-0 lg:border-r border-slate-200 bg-white h-1/2 lg:h-full relative overflow-hidden"
+          className={`${
+            mobilePane === "builder" ? "flex" : "hidden"
+          } lg:flex w-full lg:w-1/2 flex-col lg:border-r border-slate-200 bg-white flex-1 lg:h-full relative overflow-hidden min-h-0`}
           data-purpose="input-builder-pane"
         >
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto min-h-0">
             <StateBuilder
               blocks={stateBlocks}
               onChange={setStateBlocks}
@@ -350,15 +403,18 @@ export default function PlaygroundPage() {
           </div>
 
           {/* Quick Asset Upload Strip */}
-          <div className="border-t border-slate-200 px-3.5 py-2 bg-white flex items-center justify-between text-xs text-slate-500 shrink-0">
+          <div className="border-t border-slate-200 px-3 sm:px-3.5 py-2 bg-white flex items-center justify-between gap-2 text-xs text-slate-500 shrink-0">
             <button
               type="button"
               onClick={() => quickUploadRef.current?.click()}
-              className="flex items-center space-x-2 text-slate-500 hover:text-[#1e1e1e] transition-colors cursor-pointer"
+              className="flex items-center space-x-2 text-slate-500 hover:text-[#1e1e1e] transition-colors cursor-pointer min-w-0"
             >
-              <Upload className="w-4 h-4" />
-              <span className="font-sans text-xs">
-                Click to upload image or PDF asset
+              <Upload className="w-4 h-4 shrink-0" aria-hidden="true" />
+              <span className="font-sans text-xs truncate">
+                <span className="sm:hidden">Upload image or PDF</span>
+                <span className="hidden sm:inline">
+                  Click to upload image or PDF asset
+                </span>
               </span>
             </button>
             <input
@@ -371,18 +427,21 @@ export default function PlaygroundPage() {
                 e.target.value = "";
               }}
             />
-            <span className="text-xs font-mono text-slate-400">
-              max 1,000 parallel questions
+            <span className="text-xs font-mono text-slate-400 shrink-0">
+              <span className="sm:hidden">max 1,000</span>
+              <span className="hidden sm:inline">
+                max 1,000 parallel questions
+              </span>
             </span>
           </div>
 
           {/* Pinned Bottom Action Bar */}
-          <div className="border-t border-slate-200 px-3.5 py-2.5 bg-white flex items-center justify-between shrink-0">
-            <div className="flex items-center space-x-2">
-              <span className="px-2.5 py-1 text-xs font-mono font-semibold text-[#1e1e1e] bg-slate-100 border border-slate-300">
+          <div className="border-t border-slate-200 px-3 sm:px-3.5 pt-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom,0px))] bg-white flex items-center justify-between gap-2 shrink-0">
+            <div className="flex items-center space-x-1.5 sm:space-x-2 min-w-0">
+              <span className="px-2 sm:px-2.5 py-1 text-xs font-mono font-semibold text-[#1e1e1e] bg-slate-100 border border-slate-300 truncate">
                 gemini-decision-1
               </span>
-              <span className="px-2 py-1 text-xs font-mono text-[#1967d2] bg-[#e8f0fe] border border-[#c3ecf6]">
+              <span className="px-1.5 sm:px-2 py-1 text-xs font-mono text-[#1967d2] bg-[#e8f0fe] border border-[#c3ecf6] shrink-0">
                 v1beta
               </span>
             </div>
@@ -390,11 +449,11 @@ export default function PlaygroundPage() {
               type="button"
               onClick={() => void handleRunRequest()}
               disabled={isRunning || questions.length === 0}
-              className="inline-flex items-center space-x-2 px-4 py-1.5 text-sm font-sans text-white bg-[#4285f4] hover:bg-[#1a73e8] disabled:opacity-50 border border-[#1a73e8] font-semibold transition-colors shadow-sm cursor-pointer disabled:cursor-not-allowed"
+              className="touch-target inline-flex items-center justify-center space-x-1.5 sm:space-x-2 px-3.5 sm:px-4 py-1.5 text-sm font-sans text-white bg-[#4285f4] hover:bg-[#1a73e8] disabled:opacity-50 border border-[#1a73e8] font-semibold transition-colors shadow-sm cursor-pointer disabled:cursor-not-allowed shrink-0"
             >
               {isRunning && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
               <span>{isRunning ? "Evaluating..." : "Run request"}</span>
-              <span className="text-xs font-mono text-white/85 ml-1">
+              <span className="hidden sm:inline text-xs font-mono text-white/85 ml-1">
                 Ctrl+↵
               </span>
             </button>
@@ -410,6 +469,7 @@ export default function PlaygroundPage() {
           isRunning={isRunning}
           lastRunLabel={lastRunLabel}
           onLoadExample={handleLoadExample}
+          mobileHidden={mobilePane !== "response"}
         />
       </main>
     </div>

@@ -34,6 +34,7 @@ interface ResponsePanelProps {
   isRunning: boolean;
   lastRunLabel: string | null;
   onLoadExample: (example: PlaygroundExample) => void;
+  mobileHidden?: boolean;
 }
 
 function pct(prob: number): string {
@@ -405,6 +406,7 @@ export function ResponsePanel({
   isRunning,
   lastRunLabel,
   onLoadExample,
+  mobileHidden = false,
 }: ResponsePanelProps) {
   const [activeTab, setActiveTab] = useState<"structured" | "code">(
     "structured"
@@ -425,11 +427,13 @@ export function ResponsePanel({
 
   return (
     <section
-      className="w-full lg:w-1/2 flex flex-col bg-[#fbfbfc] h-1/2 lg:h-full overflow-hidden"
+      className={`${
+        mobileHidden ? "hidden" : "flex"
+      } lg:flex w-full lg:w-1/2 flex-col bg-[#fbfbfc] flex-1 lg:h-full overflow-hidden min-h-0`}
       data-purpose="response-inspector-pane"
     >
       {/* Top Response Header Bar */}
-      <div className="px-4 py-2.5 border-b border-slate-200 flex items-center justify-between bg-white shrink-0 gap-2">
+      <div className="px-3 sm:px-4 py-2.5 border-b border-slate-200 flex flex-wrap items-center justify-between bg-white shrink-0 gap-2">
         <div className="flex items-center space-x-2 min-w-0">
           <span className="text-sm font-semibold text-[#1e1e1e] font-sans tracking-wide">
             Response
@@ -472,13 +476,13 @@ export function ResponsePanel({
             role="tab"
             aria-selected={activeTab === "structured"}
             onClick={() => setActiveTab("structured")}
-            className={`inline-flex items-center space-x-1.5 px-3 py-1 border-r border-slate-300 transition-colors cursor-pointer ${
+            className={`touch-target inline-flex items-center space-x-1.5 px-2.5 sm:px-3 py-1 border-r border-slate-300 transition-colors cursor-pointer ${
               activeTab === "structured"
                 ? "bg-white text-[#1e1e1e] font-semibold"
                 : "text-slate-500 hover:text-slate-800"
             }`}
           >
-            <Table2 className="w-3.5 h-3.5" />
+            <Table2 className="w-3.5 h-3.5" aria-hidden="true" />
             <span>Structured</span>
           </button>
           <button
@@ -486,20 +490,20 @@ export function ResponsePanel({
             role="tab"
             aria-selected={activeTab === "code"}
             onClick={() => setActiveTab("code")}
-            className={`inline-flex items-center space-x-1.5 px-3 py-1 transition-colors cursor-pointer ${
+            className={`touch-target inline-flex items-center space-x-1.5 px-2.5 sm:px-3 py-1 transition-colors cursor-pointer ${
               activeTab === "code"
                 ? "bg-[#1e1e1e] text-[#57caff] font-semibold"
                 : "text-slate-500 hover:text-slate-800"
             }`}
           >
-            <Code2 className="w-3.5 h-3.5" />
+            <Code2 className="w-3.5 h-3.5" aria-hidden="true" />
             <span>SDK &amp; JSON</span>
           </button>
         </div>
       </div>
 
       {/* Scrollable Body */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3.5">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] space-y-3.5 min-h-0">
         {error && (
           <div className="border border-[#ea4335] bg-[#fce8e6] text-[#c5221f] px-3.5 py-2.5 text-sm font-mono">
             {error}
@@ -522,14 +526,14 @@ export function ResponsePanel({
           <>
             {!response && !isRunning ? (
               !welcomeDismissed ? (
-                <div className="bg-white border border-slate-200 p-6 md:p-7 space-y-6">
+                <div className="bg-white border border-slate-200 p-4 sm:p-6 md:p-7 space-y-5 sm:space-y-6">
                   {/* Top Title + Dismiss */}
                   <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1">
                       <div className="text-xs font-mono tracking-wider text-slate-400 uppercase">
                         ROAD TO DEVFEST 2026 · V1BETA
                       </div>
-                      <h1 className="text-3xl font-bold tracking-tight text-[#1e1e1e]">
+                      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#1e1e1e]">
                         Gemini Decision 1
                       </h1>
                     </div>
@@ -546,7 +550,7 @@ export function ResponsePanel({
 
                   {/* Stipple Banner Callout */}
                   <div className="stipple-banner border border-[#c3ecf6] p-4 relative overflow-hidden">
-                    <div className="max-w-[78%] space-y-1.5 relative z-10">
+                    <div className="sm:max-w-[78%] space-y-1.5 relative z-10">
                       <div className="text-sm font-bold text-[#1e1e1e]">
                         Calibrated probabilities with 0 output tokens
                       </div>
@@ -570,7 +574,7 @@ export function ResponsePanel({
                       </div>
                     </div>
                     <div
-                      className="absolute right-3 top-1/2 -translate-y-1/2 opacity-75 pointer-events-none"
+                      className="hidden sm:block absolute right-3 top-1/2 -translate-y-1/2 opacity-75 pointer-events-none"
                       aria-hidden="true"
                     >
                       <svg
@@ -653,14 +657,16 @@ export function ResponsePanel({
                           key={example.id}
                           type="button"
                           onClick={() => onLoadExample(example)}
-                          className="w-full py-3 flex items-center space-x-4 text-left text-sm hover:bg-[#f8fafd] px-2 cursor-pointer transition-colors group"
+                          className="w-full py-3 flex items-center justify-between gap-3 text-left text-sm hover:bg-[#f8fafd] px-2 cursor-pointer transition-colors group"
                         >
-                          <span className="font-semibold text-[#1e1e1e] group-hover:text-[#1967d2] w-44 shrink-0">
-                            {example.title}
-                          </span>
-                          <span className="text-slate-500 text-xs flex-1">
-                            {example.description}
-                          </span>
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 flex-1 min-w-0">
+                            <span className="font-semibold text-[#1e1e1e] group-hover:text-[#1967d2] sm:w-44 sm:shrink-0">
+                              {example.title}
+                            </span>
+                            <span className="text-slate-500 text-xs flex-1">
+                              {example.description}
+                            </span>
+                          </div>
                           <ArrowRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-[#4285f4] shrink-0" />
                         </button>
                       ))}
@@ -693,9 +699,13 @@ export function ResponsePanel({
                 </div>
               )
             ) : (
-              <div className="border border-slate-300 bg-white overflow-hidden">
-                {/* 3-Column Table Header */}
-                <div className="grid grid-cols-12 border-b border-slate-300 bg-[#f6f3f2] text-xs font-mono uppercase tracking-wider text-slate-600">
+              <div
+                className="@container border border-slate-300 bg-white overflow-hidden"
+                role="region"
+                aria-label="Decision results"
+              >
+                {/* Wide Container (>= 560px): 3-Column Table Header */}
+                <div className="hidden @[560px]:grid grid-cols-12 border-b border-slate-300 bg-[#f6f3f2] text-xs font-mono uppercase tracking-wider text-slate-600">
                   <div className="col-span-5 px-3.5 py-2.5 border-r border-slate-200">
                     Key &amp; instructions
                   </div>
@@ -716,6 +726,20 @@ export function ResponsePanel({
                   <div className="col-span-2 px-3.5 py-2.5 text-right">Type</div>
                 </div>
 
+                {/* Narrow Container (< 560px): Compact Metadata Summary Bar */}
+                <div className="@[560px]:hidden px-3 py-2 border-b border-slate-300 bg-[#f6f3f2] flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-xs font-mono text-slate-600">
+                  <span className="text-[#1e1e1e] font-semibold">
+                    gemini-decision-1
+                    {response ? ` · ${response.latencyMs}ms` : ""}
+                  </span>
+                  {response && (
+                    <span className="text-slate-500">
+                      {response.usage.total_input_tokens} in ·{" "}
+                      {response.usage.total_output_tokens} out
+                    </span>
+                  )}
+                </div>
+
                 {/* Loading Skeleton Rows */}
                 {isRunning && answerEntries.length === 0 && (
                   <div className="p-6 text-center text-sm font-mono text-slate-400 flex items-center justify-center space-x-2">
@@ -734,7 +758,8 @@ export function ResponsePanel({
 
                     return (
                       <div key={key} className="bg-white">
-                        <div className="grid grid-cols-12 items-start hover:bg-[#fafbfc] transition-colors">
+                        {/* Desktop / Wide 3-Column Row */}
+                        <div className="hidden @[560px]:grid grid-cols-12 items-start hover:bg-[#fafbfc] transition-colors">
                           {/* Col 1: Key & instructions + chevron */}
                           <button
                             type="button"
@@ -778,9 +803,53 @@ export function ResponsePanel({
                           </div>
                         </div>
 
+                        {/* Mobile / Narrow Stacked Card Row */}
+                        <div className="@[560px]:hidden">
+                          <button
+                            type="button"
+                            onClick={() => toggleRow(key)}
+                            className="w-full px-3 py-3 text-left flex items-start justify-between gap-2 hover:bg-[#fafbfc] transition-colors cursor-pointer"
+                            aria-expanded={isExpanded}
+                          >
+                            <div className="flex items-start space-x-2 min-w-0">
+                              <span className="text-slate-400 mt-0.5 shrink-0">
+                                {isExpanded ? (
+                                  <ChevronDown className="w-4 h-4" />
+                                ) : (
+                                  <ChevronRight className="w-4 h-4" />
+                                )}
+                              </span>
+                              <div className="min-w-0 space-y-0.5">
+                                <div className="text-sm font-mono font-bold text-[#1e1e1e] break-all">
+                                  {key}
+                                </div>
+                                <div className="text-xs font-sans text-slate-500">
+                                  {matchedQ?.instructions ??
+                                    "Evaluated question"}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="shrink-0">
+                              <TypeBadge type={answer.type} />
+                            </div>
+                          </button>
+
+                          <div className="px-3 pb-3 pt-1">
+                            {answer.type === "noul" && (
+                              <NoulResultCell answer={answer} />
+                            )}
+                            {answer.type === "choice" && (
+                              <ChoiceResultCell answer={answer} />
+                            )}
+                            {answer.type === "score" && (
+                              <ScoreResultCell answer={answer} />
+                            )}
+                          </div>
+                        </div>
+
                         {/* Expandable Criteria Drawer */}
                         {isExpanded && (
-                          <div className="border-t border-slate-200 bg-[#fafbfc] px-4 py-3.5">
+                          <div className="border-t border-slate-200 bg-[#fafbfc] px-3 sm:px-4 py-3.5">
                             <div className="text-xs font-mono uppercase tracking-wider text-slate-400 mb-2.5">
                               Criteria &amp; Distribution Breakdown
                             </div>
