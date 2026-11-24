@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
+  Check,
   Code2,
+  Copy,
   FileText,
   GripVertical,
   Image as ImageIcon,
@@ -10,7 +12,7 @@ import {
   Upload,
   X,
 } from "lucide-react";
-import { formatBytes, serializeStateBlocksToInput } from "@/lib/serialize";
+import { buildStateObject, formatBytes } from "@/lib/serialize";
 import type {
   AssetStateBlock,
   StateBlock,
@@ -35,6 +37,54 @@ function isValidJson(raw: string): boolean {
   }
 }
 
+function inferStateBlocksFromObject(
+  obj: Record<string, unknown>,
+  existingBlocks: StateBlock[]
+): StateBlock[] {
+  const existingVarsByKey = new Map<string, VariableStateBlock>();
+  const assetBlocks: AssetStateBlock[] = [];
+
+  for (const block of existingBlocks) {
+    if (block.kind === "variable") {
+      existingVarsByKey.set(block.key.trim(), block);
+    } else {
+      assetBlocks.push(block);
+    }
+  }
+
+  const nextVars: VariableStateBlock[] = Object.entries(obj).map(
+    ([key, val], idx) => {
+      const prev = existingVarsByKey.get(key);
+      let valueType: StateValueType = "string";
+      let value: string;
+
+      if (typeof val === "number") {
+        valueType = "number";
+        value = String(val);
+      } else if (typeof val === "boolean") {
+        valueType = "boolean";
+        value = val ? "true" : "false";
+      } else if (typeof val === "string") {
+        valueType = "string";
+        value = val;
+      } else {
+        valueType = "json";
+        value = JSON.stringify(val);
+      }
+
+      return {
+        id: prev?.id ?? `state_raw_${idx}_${key}`,
+        kind: "variable",
+        key,
+        valueType,
+        value,
+      };
+    }
+  );
+
+  return [...nextVars, ...assetBlocks];
+}
+
 export function StateBuilder({
   blocks,
   onChange,
@@ -42,9 +92,90 @@ export function StateBuilder({
   onAddAsset,
 }: StateBuilderProps) {
   const [viewMode, setViewMode] = useState<"visual" | "raw">("visual");
+  const [rawText, setRawText] = useState<string>(() =>
+    JSON.stringify(buildStateObject(blocks), null, 2)
+  );
+  const [rawError, setRawError] = useState<string | null>(null);
+  const [copiedRaw, setCopiedRaw] = useState(false);
+  const lastEmittedJsonRef = useRef<string | null>(null);
   const [armedDragId, setArmedDragId] = useState<string | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
+
+  // Sync external block updates (e.g. Clear or Load Example) into the raw JSON editor
+  const serializedStateJson = JSON.stringify(buildStateObject(blocks), null, 2);
+  useEffect(() => {
+    if (lastEmittedJsonRef.current === serializedStateJson) {
+      lastEmittedJsonRef.current = null;
+      return;
+    }
+    setRawText(serializedStateJson);
+    setRawError(null);
+  }, [serializedStateJson]);
+
+  const handleSwitchMode = (nextMode: "visual" | "raw") => {
+    if (nextMode === "raw") {
+      setRawText(serializedStateJson);
+      setRawError(null);
+    }
+    setViewMode(nextMode);
+  };
+
+  const handleRawChange = (nextText: string) => {
+    setRawText(nextText);
+    const trimmed = nextText.trim();
+    if (!trimmed) {
+      setRawError("Enter a JSON object (e.g. {}).");
+      return;
+    }
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (
+        typeof parsed !== "object" ||
+        parsed === null ||
+        Array.isArray(parsed)
+      ) {
+        setRawError("State must be a JSON object (key-value pairs).");
+        return;
+      }
+      setRawError(null);
+      const nextBlocks = inferStateBlocksFromObject(
+        parsed as Record<string, unknown>,
+        blocks
+      );
+      lastEmittedJsonRef.current = JSON.stringify(
+        buildStateObject(nextBlocks),
+        null,
+        2
+      );
+      onChange(nextBlocks);
+    } catch (err) {
+      setRawError(
+        err instanceof Error ? err.message : "Invalid JSON syntax."
+      );
+    }
+  };
+
+  const handleFormatRaw = () => {
+    try {
+      const parsed = JSON.parse(rawText);
+      const formatted = JSON.stringify(parsed, null, 2);
+      setRawText(formatted);
+      setRawError(null);
+    } catch {
+      // Keep current error message
+    }
+  };
+
+  const handleCopyRaw = async () => {
+    try {
+      await navigator.clipboard.writeText(rawText);
+      setCopiedRaw(true);
+      setTimeout(() => setCopiedRaw(false), 1600);
+    } catch {
+      setCopiedRaw(false);
+    }
+  };
 
   const updateVariable = (
     id: string,
@@ -105,16 +236,7 @@ export function StateBuilder({
     reader.readAsDataURL(file);
   };
 
-  const rawPreview = (() => {
-    const serialized = serializeStateBlocksToInput(blocks).map((item) => {
-      if (item.type === "text") return item;
-      return {
-        ...item,
-        data: `<base64: ${item.data.length} chars>`,
-      };
-    });
-    return JSON.stringify(serialized, null, 2);
-  })();
+  const assetCount = blocks.filter((b) => b.kind === "asset").length;
 
   const countLabel =
     blocks.length === 1 ? "1 variable" : `${blocks.length} variables`;
@@ -131,32 +253,38 @@ export function StateBuilder({
             {countLabel}
           </span>
         </div>
-        <div className="inline-flex border border-slate-200 bg-slate-50">
+        <div
+          className="inline-flex border border-slate-200 bg-slate-50"
+          role="group"
+          aria-label="State view mode"
+        >
           <button
             type="button"
-            onClick={() => setViewMode("visual")}
+            onClick={() => handleSwitchMode("visual")}
+            aria-pressed={viewMode === "visual"}
             className={`p-1.5 border-r border-slate-200 transition-colors cursor-pointer ${
               viewMode === "visual"
-                ? "bg-white text-slate-800"
+                ? "bg-white text-slate-900 font-semibold"
                 : "text-slate-400 hover:text-slate-700"
             }`}
             title="Visual Block Mode"
             aria-label="Visual Block Mode"
           >
-            <LayoutGrid className="w-3.5 h-3.5" />
+            <LayoutGrid className="w-3.5 h-3.5" aria-hidden="true" />
           </button>
           <button
             type="button"
-            onClick={() => setViewMode("raw")}
+            onClick={() => handleSwitchMode("raw")}
+            aria-pressed={viewMode === "raw"}
             className={`p-1.5 transition-colors cursor-pointer ${
               viewMode === "raw"
-                ? "bg-white text-slate-800"
+                ? "bg-[#1e1e1e] text-[#57caff] font-semibold"
                 : "text-slate-400 hover:text-slate-700"
             }`}
             title="Raw Input JSON View"
             aria-label="Raw Input JSON View"
           >
-            <Code2 className="w-3.5 h-3.5" />
+            <Code2 className="w-3.5 h-3.5" aria-hidden="true" />
           </button>
         </div>
       </div>
@@ -165,16 +293,61 @@ export function StateBuilder({
       <div className="p-3 sm:p-3.5 bg-[#fafbfc] border-b border-slate-200 space-y-3">
         {viewMode === "raw" ? (
           <div className="bg-[#1e1e1e] text-[#f0f0f0] border border-[#1e1e1e]">
-            <div className="px-3 py-2 border-b border-[#333333] flex flex-wrap items-center justify-between gap-1 text-xs font-mono">
-              <span className="text-[#57caff]">~/gdg-console/input.json</span>
-              <span className="text-slate-400">shared prefix · billed once</span>
+            <div className="px-3 py-2 border-b border-[#333333] flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <span className="text-[#57caff]">~/gdg-console/state.json</span>
+                <span className="text-slate-400">editable · syncs live</span>
+              </div>
+              <div className="flex items-center space-x-1.5">
+                <button
+                  type="button"
+                  onClick={handleFormatRaw}
+                  disabled={Boolean(rawError)}
+                  className="px-2 py-0.5 border border-[#444444] bg-[#262626] hover:bg-[#333333] disabled:opacity-40 text-slate-200 transition-colors cursor-pointer disabled:cursor-not-allowed"
+                >
+                  Format
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void handleCopyRaw()}
+                  className="inline-flex items-center space-x-1 px-2 py-0.5 border border-[#444444] bg-[#262626] hover:bg-[#333333] text-slate-200 transition-colors cursor-pointer"
+                >
+                  {copiedRaw ? (
+                    <>
+                      <Check className="w-3 h-3 text-[#5cdb6d]" aria-hidden="true" />
+                      <span className="text-[#5cdb6d]">Copied</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3 h-3 text-slate-400" aria-hidden="true" />
+                      <span>Copy</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
-            <pre
-              tabIndex={0}
-              className="p-3 sm:p-3.5 text-xs sm:text-[13px] font-mono leading-relaxed overflow-x-auto code-editor"
-            >
-              {rawPreview}
-            </pre>
+
+            <textarea
+              aria-label="Raw state JSON editor"
+              value={rawText}
+              onChange={(e) => handleRawChange(e.target.value)}
+              spellCheck={false}
+              rows={Math.max(6, Math.min(18, rawText.split("\n").length + 1))}
+              className="w-full p-3 sm:p-3.5 text-xs sm:text-[13px] font-mono leading-relaxed bg-[#1e1e1e] text-[#f0f0f0] focus:outline-none resize-y code-editor block"
+            />
+
+            {rawError && (
+              <div className="px-3 py-2 border-t border-[#ea4335] bg-[#fce8e6]/15 text-[#ff7daf] text-xs font-mono">
+                Invalid JSON: {rawError}
+              </div>
+            )}
+
+            {assetCount > 0 && (
+              <div className="px-3 py-1.5 border-t border-[#333333] text-[11px] font-mono text-slate-400">
+                + {assetCount} attached {assetCount === 1 ? "asset" : "assets"}{" "}
+                preserved (manage attachments in Visual Block Mode)
+              </div>
+            )}
           </div>
         ) : (
           <>
